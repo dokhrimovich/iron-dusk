@@ -36,3 +36,53 @@ export const getOffset = (row, col) => {
 
     return [rowOffsetX + halfOffsetX + colOffsetX, - (rowOffsetY + halfOffsetY + colOffsetY)];
 };
+/**
+ * @param row
+ * @param col
+ *        1
+ *      /  \
+ *   6/     \2
+ *   |       |
+ *  A.  .   .B
+ *  |   c   |
+ * 5\      /3
+ *   \   /
+ *     4
+ */
+export const getHexVerticesOffset = (row, col) => {
+    const [centerX, centerY] = getOffset(row, col); // c
+    const topX = centerX - sqrt3 / 2; // 1
+    const topY = centerY - 1/2; // 1
+
+    const topRightX = centerX + (3 - sqrt3) / 4; // 2
+    const topRightY = centerY - (sqrt3 + 1) / 4; // 2
+
+    const bottomRightX = centerX + (3 + sqrt3) / 4; // 3
+    const bottomRightY = centerY - (sqrt3 - 1) / 4; // 3
+
+    const bottomX = centerX + sqrt3 / 2; // 4
+    const bottomY = centerY + 1/2; // 4
+
+    const bottomLeftX = centerX - (3 - sqrt3) / 4; // 5
+    const bottomLeftY = centerY + (sqrt3 + 1) / 4; // 5
+
+    const topLeftX = centerX - (3 + sqrt3) / 4; // 6
+    const topLeftY = centerY + (sqrt3 - 1) / 4; // 6
+
+    return {
+        center: [centerX, centerY],
+        top: [topX, topY],
+        topRight: [topRightX, topRightY],
+        bottomRight: [bottomRightX, bottomRightY],
+        bottom: [bottomX, bottomY],
+        bottomLeft: [bottomLeftX, bottomLeftY],
+        topLeft: [topLeftX, topLeftY]
+    };
+
+    // const centerLeftX = centerX - 3 / 4; // A
+    // const centerLeftY = centerY + sqrt3 / 4; // A
+    //
+    // const centerRightX = centerX + 3/4; // B
+    // const centerRightY = centerY - sqrt3 / 4; // B
+
+};
