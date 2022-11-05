@@ -4,8 +4,7 @@ const defaultDisplayOffsetX = 10;
 const defaultDisplayOffsetY = 400;
 
 export const useDisplayOffsetKeyboardControl = () => {
-    const [displayOffsetX, setDisplayOffsetX] = useState(defaultDisplayOffsetX);
-    const [displayOffsetY, setDisplayOffsetY] = useState(defaultDisplayOffsetY);
+    const [offset, setOffset] = useState([defaultDisplayOffsetX, defaultDisplayOffsetY]);
     const presetKeysRef = useRef(new Set());
     const onKeydown = useCallback((event) => {
         switch (event.key) {
@@ -46,23 +45,26 @@ export const useDisplayOffsetKeyboardControl = () => {
 
         id = window.requestAnimationFrame(function move(timestamp) {
             const diff = !prev ? 0 : (timestamp - prev) * 0.1;
+            let dX = 0;
+            let dY = 0;
 
             if (presetKeysRef.current.has('ArrowUp')) {
-                setDisplayOffsetY(prevY => prevY + diff);
+                dY = diff;
             }
 
             if (presetKeysRef.current.has('ArrowDown')) {
-                setDisplayOffsetY(prevY => prevY - diff);
+                dY = - diff;
             }
 
             if (presetKeysRef.current.has('ArrowLeft')) {
-                setDisplayOffsetX(prevX => prevX + diff);
+                dX = diff;
             }
 
             if (presetKeysRef.current.has('ArrowRight')) {
-                setDisplayOffsetX(prevX => prevX - diff);
+                dX = - diff;
             }
 
+            (dX || dY) && setOffset(([x, y]) => [x + dX, y + dY]);
             prev = timestamp;
             id = window.requestAnimationFrame(move);
         });
@@ -71,7 +73,7 @@ export const useDisplayOffsetKeyboardControl = () => {
             window.cancelAnimationFrame(id);
             prev = 0;
         }
-    }, [presetKeysRef, setDisplayOffsetX, setDisplayOffsetY]);
+    }, [presetKeysRef, setOffset]);
 
-    return [displayOffsetX, displayOffsetY];
+    return [...offset];
 };
