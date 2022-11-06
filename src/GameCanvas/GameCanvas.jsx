@@ -1,6 +1,6 @@
-import React, { useEffect, useCallback, useRef, useMemo, useState } from 'react';
+import React, { useEffect, useCallback, useMemo, useState } from 'react';
 import { throttle } from 'utils/common';
-import { useEngine } from 'Engine'
+import { useEngine } from '../Engine';
 
 import style from './GameCanvas.scss';
 
@@ -52,11 +52,11 @@ const useCanvasContext = () => {
         }
     }, [resize, throttledResize]);
 
-    return { containerRef, canvasRef, ctx, width, height };
+    return { containerRef, canvasRef, ctx, canvas, width, height };
 };
 
 export const GameCanvas = () => {
-    const { containerRef, canvasRef, ctx, width, height } = useCanvasContext();
+    const { containerRef, canvasRef, ctx, canvas, width, height } = useCanvasContext();
 
     // const canvasRef = useRef();
     // const containerRef = useRef();
@@ -80,7 +80,7 @@ export const GameCanvas = () => {
     //     }
     // });
 
-    useEngine(ctx, width, height);
+    useEngine({ ctx, canvas, width, height });
 
     return (
         <div ref={containerRef} className={style.container}>

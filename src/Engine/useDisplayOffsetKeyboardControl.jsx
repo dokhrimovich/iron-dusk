@@ -44,7 +44,7 @@ export const useDisplayOffsetKeyboardControl = () => {
         let prev = 0;
 
         id = window.requestAnimationFrame(function move(timestamp) {
-            const diff = !prev ? 0 : (timestamp - prev) * 0.1;
+            const diff = !prev ? 0 : (timestamp - prev) * 0.2;
             let dX = 0;
             let dY = 0;
 

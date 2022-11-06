@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { getHexVerticesOffset } from 'utils/common';
+import { useClickOnCell } from './useClickOnCell';
 import { useDisplayOffsetKeyboardControl } from './useDisplayOffsetKeyboardControl';
 
 const map = [
@@ -42,8 +43,7 @@ const useSkeleton = (scale, displayOffsetX, displayOffsetY) => {
     }, [displayOffsetX, displayOffsetY]);
 };
 
-
-export const useEngine = (ctx, width, height) => {
+export const useEngine = ({ ctx, canvas, width, height }) => {
     const [displayOffsetX, displayOffsetY] = useDisplayOffsetKeyboardControl();
     const skeleton = useSkeleton(SCALE, displayOffsetX, displayOffsetY);
     const drawCircle = useCallback((x, y) => {
@@ -77,15 +77,39 @@ export const useEngine = (ctx, width, height) => {
         ctx.lineTo(...bottom);
         ctx.lineTo(...bottomLeft);
         ctx.lineTo(...topLeft);
-        ctx.lineTo(...top);
+        ctx.closePath();
         ctx.stroke();
+    }, [ctx]);
+    const drawClickedCell = useCallback((col) => {
+        const {
+            top,
+            topRight,
+            bottomRight,
+            bottom,
+            bottomLeft,
+            topLeft
+        } = col;
+
+        const region = new Path2D();
+        region.moveTo(...top);
+        region.lineTo(...topRight);
+        region.lineTo(...bottomRight);
+        region.lineTo(...bottom);
+        region.lineTo(...bottomLeft);
+        region.lineTo(...topLeft);
+        region.closePath();
+        ctx.fillStyle = "#4a4a4a";
+        ctx.fill(region);
+
     }, [ctx]);
     const clearCanvas = useCallback((w, h) => {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, w, h);
     }, [ctx]);
 
-   useEffect(() => {
+    const clickedCell = useClickOnCell({ skeleton, canvas, scale: SCALE });
+
+    useEffect(() => {
         let id;
 
         id = window.requestAnimationFrame(function draw() {
@@ -99,9 +123,14 @@ export const useEngine = (ctx, width, height) => {
                 row.forEach((col, ci) => {
                     const { center: [x, y] } = col;
 
+                    drawHex(col);
+
+                    if (clickedCell && clickedCell[0] === ri && clickedCell[1] === ci) {
+                        drawClickedCell(col);
+                    }
+
                     drawCircle(x, y);
                     drawText(x + 5, y - 5, `[${ri}:${ci}]`);
-                    drawHex(col);
                 })
             });
             id = window.requestAnimationFrame(draw);
@@ -110,5 +139,5 @@ export const useEngine = (ctx, width, height) => {
         return () => {
             window.cancelAnimationFrame(id);
         }
-    }, [ctx, width, height, displayOffsetX, displayOffsetY]);
+    }, [ctx, width, height, displayOffsetX, displayOffsetY, clickedCell]);
 };
