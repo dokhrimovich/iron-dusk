@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { getHexVerticesOffset } from 'utils/common';
 import { useClickOnCell } from './useClickOnCell';
+import { useHoverOverCell } from './useHoverOverCell';
 import { useDisplayOffsetKeyboardControl } from './useDisplayOffsetKeyboardControl';
 
 const map = [
@@ -102,12 +103,35 @@ export const useEngine = ({ ctx, canvas, width, height }) => {
         ctx.fill(region);
 
     }, [ctx]);
+    const drawHoveredCell = useCallback((col) => {
+        const {
+            top,
+            topRight,
+            bottomRight,
+            bottom,
+            bottomLeft,
+            topLeft
+        } = col;
+
+        const region = new Path2D();
+        region.moveTo(...top);
+        region.lineTo(...topRight);
+        region.lineTo(...bottomRight);
+        region.lineTo(...bottom);
+        region.lineTo(...bottomLeft);
+        region.lineTo(...topLeft);
+        region.closePath();
+        ctx.fillStyle = "#2a2a2a";
+        ctx.fill(region);
+
+    }, [ctx]);
     const clearCanvas = useCallback((w, h) => {
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, w, h);
     }, [ctx]);
 
     const clickedCell = useClickOnCell({ skeleton, canvas, scale: SCALE });
+    const hoveredCell = useHoverOverCell({ skeleton, canvas, scale: SCALE });
 
     useEffect(() => {
         let id;
@@ -125,6 +149,10 @@ export const useEngine = ({ ctx, canvas, width, height }) => {
 
                     drawHex(col);
 
+                    if (hoveredCell && hoveredCell[0] === ri && hoveredCell[1] === ci) {
+                        drawHoveredCell(col);
+                    }
+
                     if (clickedCell && clickedCell[0] === ri && clickedCell[1] === ci) {
                         drawClickedCell(col);
                     }
@@ -139,5 +167,5 @@ export const useEngine = ({ ctx, canvas, width, height }) => {
         return () => {
             window.cancelAnimationFrame(id);
         }
-    }, [ctx, width, height, displayOffsetX, displayOffsetY, clickedCell]);
+    }, [ctx, width, height, displayOffsetX, displayOffsetY, clickedCell, hoveredCell]);
 };
