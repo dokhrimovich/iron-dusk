@@ -1,19 +1,23 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { getHexVerticesOffset } from 'utils/common';
-import { useClickOnCell } from './useClickOnCell';
-import { useHoverOverCell } from './useHoverOverCell';
 import { useDisplayOffsetKeyboardControl } from './useDisplayOffsetKeyboardControl';
+import { useCellStates } from './useCellStates';
+import { useGrid } from './useGrid';
 
 const map = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0, 0, 0, 0 ,0],
+    [1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1],
+    [1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0, 0, 0, 0 ,0]
 ];
 
 const SCALE = 50;
@@ -41,131 +45,36 @@ const useSkeleton = (scale, displayOffsetX, displayOffsetY) => {
                 topLeft: [topLeftX * scale + displayOffsetX, topLeftY * scale + displayOffsetY]
             };
         }));
-    }, [displayOffsetX, displayOffsetY]);
+    }, [scale, displayOffsetX, displayOffsetY]);
 };
 
 export const useEngine = ({ ctx, canvas, width, height }) => {
     const [displayOffsetX, displayOffsetY] = useDisplayOffsetKeyboardControl();
     const skeleton = useSkeleton(SCALE, displayOffsetX, displayOffsetY);
-    const drawCircle = useCallback((x, y) => {
-        ctx.strokeStyle = 'white';
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.arc(x, y, 2, 0, Math.PI * 2);
-        ctx.stroke();
-    }, [ctx]);
-    const drawText = useCallback((x, y, text) => {
-        ctx.fillStyle  = 'white';
-        ctx.strokeStyle = 'black';
-        ctx.font = '10px serif';
-        ctx.fillText(text, x, y);
-    }, [ctx]);
-    const drawHex = useCallback((col) => {
-        const {
-            top,
-            topRight,
-            bottomRight,
-            bottom,
-            bottomLeft,
-            topLeft
-        } = col;
+    const { clickedCell, hoveredCell, fromCell, toCell } = useCellStates({ skeleton, map, canvas, scale: SCALE });
 
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 1;
-        ctx.moveTo(...top);
-        ctx.lineTo(...topRight);
-        ctx.lineTo(...bottomRight);
-        ctx.lineTo(...bottom);
-        ctx.lineTo(...bottomLeft);
-        ctx.lineTo(...topLeft);
-        ctx.closePath();
-        ctx.stroke();
-    }, [ctx]);
-    const drawClickedCell = useCallback((col) => {
-        const {
-            top,
-            topRight,
-            bottomRight,
-            bottom,
-            bottomLeft,
-            topLeft
-        } = col;
+    const grid = useGrid({ ctx, skeleton, map, clickedCell, hoveredCell, fromCell, toCell });
 
-        const region = new Path2D();
-        region.moveTo(...top);
-        region.lineTo(...topRight);
-        region.lineTo(...bottomRight);
-        region.lineTo(...bottom);
-        region.lineTo(...bottomLeft);
-        region.lineTo(...topLeft);
-        region.closePath();
-        ctx.fillStyle = "#4a4a4a";
-        ctx.fill(region);
-
-    }, [ctx]);
-    const drawHoveredCell = useCallback((col) => {
-        const {
-            top,
-            topRight,
-            bottomRight,
-            bottom,
-            bottomLeft,
-            topLeft
-        } = col;
-
-        const region = new Path2D();
-        region.moveTo(...top);
-        region.lineTo(...topRight);
-        region.lineTo(...bottomRight);
-        region.lineTo(...bottom);
-        region.lineTo(...bottomLeft);
-        region.lineTo(...topLeft);
-        region.closePath();
-        ctx.fillStyle = "#2a2a2a";
-        ctx.fill(region);
-
-    }, [ctx]);
-    const clearCanvas = useCallback((w, h) => {
+    const clearCanvas = useCallback(() => {
         ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, w, h);
-    }, [ctx]);
-
-    const clickedCell = useClickOnCell({ skeleton, canvas, scale: SCALE });
-    const hoveredCell = useHoverOverCell({ skeleton, canvas, scale: SCALE });
+        ctx.fillRect(0, 0, width, height);
+    }, [ctx, width, height]);
 
     useEffect(() => {
-        let id;
-
-        id = window.requestAnimationFrame(function draw() {
+        let id = window.requestAnimationFrame(function draw() {
             if (!ctx) {
                 return;
             }
 
-            clearCanvas(width, height);
+            clearCanvas();
 
-            skeleton.forEach((row, ri) => {
-                row.forEach((col, ci) => {
-                    const { center: [x, y] } = col;
+            grid.draw();
 
-                    drawHex(col);
-
-                    if (hoveredCell && hoveredCell[0] === ri && hoveredCell[1] === ci) {
-                        drawHoveredCell(col);
-                    }
-
-                    if (clickedCell && clickedCell[0] === ri && clickedCell[1] === ci) {
-                        drawClickedCell(col);
-                    }
-
-                    drawCircle(x, y);
-                    drawText(x + 5, y - 5, `[${ri}:${ci}]`);
-                })
-            });
             id = window.requestAnimationFrame(draw);
         });
 
         return () => {
             window.cancelAnimationFrame(id);
-        }
-    }, [ctx, width, height, displayOffsetX, displayOffsetY, clickedCell, hoveredCell]);
+        };
+    }, [ctx, clearCanvas, grid]);
 };
