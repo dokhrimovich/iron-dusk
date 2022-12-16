@@ -8,7 +8,7 @@ export const throttle = (fn, delay) => {
             prevCall = now;
             fn(...args);
         }
-    }
+    };
 };
 
 const sqrt3 = Math.sqrt(3);
@@ -26,7 +26,7 @@ export const getOffset = (row, col) => {
     const isOddRow = row % 2 > 0;
 
     const rowOffsetX = (3 * sqrt3 / 4) * row;
-    const rowOffsetY = - (3 / 4) * row;
+    const rowOffsetY = -(3 / 4) * row;
 
     const halfOffsetX = isOddRow ? 3 / 4 : 0;
     const halfOffsetY = isOddRow ? sqrt3 / 4 : 0;
@@ -34,7 +34,7 @@ export const getOffset = (row, col) => {
     const colOffsetX = (3 / 2) * col;
     const colOffsetY = (sqrt3 / 2) * col;
 
-    return [rowOffsetX + halfOffsetX + colOffsetX, - (rowOffsetY + halfOffsetY + colOffsetY)];
+    return [rowOffsetX + halfOffsetX + colOffsetX, -(rowOffsetY + halfOffsetY + colOffsetY)];
 };
 /**
  * @param row
@@ -78,11 +78,4 @@ export const getHexVerticesOffset = (row, col) => {
         bottomLeft: [bottomLeftX, bottomLeftY],
         topLeft: [topLeftX, topLeftY]
     };
-
-    // const centerLeftX = centerX - 3 / 4; // A
-    // const centerLeftY = centerY + sqrt3 / 4; // A
-    //
-    // const centerRightX = centerX + 3/4; // B
-    // const centerRightY = centerY - sqrt3 / 4; // B
-
 };

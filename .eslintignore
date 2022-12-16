@@ -1,6 +1,0 @@
-# thirdparty
-/vendors
-
-# mocks
-/app-react/**/mock/**
-/app-react/.eslintrc.js

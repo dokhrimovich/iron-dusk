@@ -1,16 +1,11 @@
-/**
- * ESLint root config
- *
- * Stands as base config for all other configs in the project.
- * Rules, marked as 'WIP', require some work until they could be enabled.
- * All 'warn's will be transformed into `error`s eventually.
- */
 module.exports = {
     root: true,
 
     env: {
         commonjs: true,
         node: true,
+        amd: true,
+        browser: true,
         es6: true
     },
 
@@ -20,10 +15,13 @@ module.exports = {
         sourceType: 'module'
     },
 
-    extends: ['eslint:recommended'],
+    extends: ['eslint:recommended', 'plugin:react-hooks/recommended'],
 
     plugins: [
-        '@babel'
+        'react',
+        '@babel',
+        'import',
+        'react-hooks'
     ],
 
     rules: {
@@ -40,14 +38,7 @@ module.exports = {
         'no-empty': 'error',
         'no-ex-assign': 'error',
         'no-extra-boolean-cast': 'error',
-        'no-extra-parens': [
-            'warn',
-            'all',
-            {
-                enforceForNewInMemberExpressions: false,
-                ignoreJSX: 'all'
-            }
-        ],
+        'no-extra-parens': 'off',
         'no-extra-semi': 'error',
         'no-func-assign': 'error',
         'no-inner-declarations': 'error',
@@ -103,14 +94,12 @@ module.exports = {
         'no-implicit-coercion': 'warn',
         'no-implicit-globals': 'error',
         'no-implied-eval': 'error',
-        'no-invalid-this': 'off', // WIP: check underscore & lodash plugins for eslint
+        'no-invalid-this': 'off',
         'no-iterator': 'error',
         'no-labels': 'error',
         'no-lone-blocks': 'error',
-        // WIP: Most our loops are made using underscore/lodash and are not detected by this rule.
-        // We should discuss if we need this and how exactly (preferably - detect underscore loops as well).
         'no-loop-func': 'warn',
-        'no-magic-numbers': [ // WIP: too much errors. Need to discuss
+        'no-magic-numbers': [
             'off',
             {
                 ignoreArrayIndexes: true,
@@ -130,10 +119,10 @@ module.exports = {
         'no-new-wrappers': 'error',
         'no-octal-escape': 'error',
         'no-octal': 'error',
-        'no-param-reassign': 'off', // WIP: requires discussion
+        'no-param-reassign': 'off',
         'no-proto': 'error',
         'no-redeclare': 'error',
-        'no-restricted-properties': [ // WIP: need to check what properties could be added here
+        'no-restricted-properties': [
             'error',
             {
                 property: '__defineGetter__',
@@ -214,7 +203,7 @@ module.exports = {
             }
         ],
         'space-in-parens': 'error',
-        'space-infix-ops': 'error',
+        'space-infix-ops': 'off',
         'space-unary-ops': 'error',
 
         // Babel plugins
@@ -224,6 +213,18 @@ module.exports = {
                 allowShortCircuit: true,
                 allowTernary: true
             }
-        ]
+        ],
+
+        // JSX
+        'react/jsx-uses-vars': 1,
+        'react/jsx-uses-react': 1,
+        'react/react-in-jsx-scope': 1,
+        'react/prop-types': 'off',
+        'react/display-name': 'off',
+        'react/no-deprecated': 'error',
+
+        // React hooks
+        'react-hooks/rules-of-hooks': 'error',
+        'react-hooks/exhaustive-deps': 'error'
     }
 };
