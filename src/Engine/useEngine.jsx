@@ -3,15 +3,16 @@ import { getHexVerticesOffset } from 'utils/common';
 import { useDisplayOffsetKeyboardControl } from './useDisplayOffsetKeyboardControl';
 import { useCellStates } from './useCellStates';
 import { useGrid } from './useGrid';
+import { useGetShortestPath } from './useGetShortestPath';
 
 const map = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0, 0, 0, 0 ,0],
     [1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1],
     [1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -51,6 +52,7 @@ const useSkeleton = (scale, displayOffsetX, displayOffsetY) => {
 export const useEngine = ({ ctx, canvas, width, height }) => {
     const [displayOffsetX, displayOffsetY] = useDisplayOffsetKeyboardControl();
     const skeleton = useSkeleton(SCALE, displayOffsetX, displayOffsetY);
+    const getShortestPath = useGetShortestPath({ map });
     const { clickedCell, hoveredCell, fromCell, toCell } = useCellStates({ skeleton, map, canvas, scale: SCALE });
 
     const grid = useGrid({ ctx, skeleton, map, clickedCell, hoveredCell, fromCell, toCell });
@@ -61,6 +63,9 @@ export const useEngine = ({ ctx, canvas, width, height }) => {
     }, [ctx, width, height]);
 
     useEffect(() => {
+        // todo WIP
+        window.getShortestPath = getShortestPath;
+
         let id = window.requestAnimationFrame(function draw() {
             if (!ctx) {
                 return;
@@ -76,5 +81,5 @@ export const useEngine = ({ ctx, canvas, width, height }) => {
         return () => {
             window.cancelAnimationFrame(id);
         };
-    }, [ctx, clearCanvas, grid]);
+    }, [ctx, clearCanvas, grid, getShortestPath]);
 };

@@ -103,6 +103,11 @@ module.exports = (env = {}, opts = {}) => {
                     use: ['babel-loader']
                 },
                 {
+                    test: /\.worker\.js$/,
+                    exclude: /node_modules/,
+                    use: ['worker-loader']
+                },
+                {
                     test: /\.(png|jpe?g|gif|svg$)$/i,
                     loader: 'file-loader',
                     options: {

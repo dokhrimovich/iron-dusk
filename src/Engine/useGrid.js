@@ -91,10 +91,3 @@ export const useGrid = ({ ctx, map, skeleton, clickedCell, hoveredCell, fromCell
         draw
     }), [draw]);
 };
-/*
-        "eslint": "7.15.0",
-        "eslint-import-resolver-webpack": "0.13.2",
-        "eslint-plugin-babel": "5.3.1",
-        "eslint-plugin-import": "2.25.4",
-        "eslint-plugin-react": "7.28.0",
-        "eslint-plugin-react-hooks": "4.3.0",*/
