@@ -40,16 +40,8 @@ export const useGetShortestPath = ({ map }) => {
         let onError;
 
         return new Promise((resolve, reject) => {
-            onMessage = (event) => {
-                console.log('MAIN ', event.data);
-
-                resolve(event.data);
-            };
-            onError = (event) => {
-                console.error('MAIN ', event.data);
-
-                reject(event.data);
-            };
+            onMessage = (event) => resolve(event.data);
+            onError = (event) => reject(event.data);
 
             shortestPathWebWorker.addEventListener('message', onMessage);
             shortestPathWebWorker.addEventListener('error', onError);

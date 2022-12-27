@@ -1,7 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import { COLOR } from './constants';
 
-export const useGrid = ({ ctx, map, skeleton, clickedCell, hoveredCell, fromCell, toCell }) => {
+export const useGrid = ({ ctx, map, skeleton, clickedCell, hoveredCell, fromCell, toCell, path }) => {
     const drawCircle = useCallback((x, y) => {
         ctx.strokeStyle = 'white';
         ctx.beginPath();
@@ -48,6 +48,23 @@ export const useGrid = ({ ctx, map, skeleton, clickedCell, hoveredCell, fromCell
             drawCircle(...center);
         }
     }, [ctx, drawCircle]);
+    const drawPath = useCallback((cells) => {
+        if (cells.length < 2) {
+            return;
+        }
+
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(...cells[0]);
+        cells.forEach(cell => ctx.lineTo(...cell));
+
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+        ctx.lineWidth = 1;
+    }, [ctx]);
 
     const getColor = useCallback((ri, ci) => {
         const isNoGoCell = map[ri][ci] === 0;
@@ -85,7 +102,13 @@ export const useGrid = ({ ctx, map, skeleton, clickedCell, hoveredCell, fromCell
                 drawText(x + 5, y - 5, `[${ri}:${ci}]`);
             });
         });
-    }, [ctx, skeleton, clickedCell, hoveredCell, fromCell, toCell, drawCell, drawText, getColor]);
+
+        if (path && path.length) {
+            const pathCells = path.map(([ri, ci]) => skeleton[ri][ci].center);
+
+            drawPath(pathCells);
+        }
+    }, [ctx, skeleton, clickedCell, hoveredCell, path, drawCell, drawText, drawPath, getColor]);
 
     return useMemo(() => ({
         draw

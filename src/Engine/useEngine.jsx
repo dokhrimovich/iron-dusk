@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getHexVerticesOffset } from 'utils/common';
 import { useDisplayOffsetKeyboardControl } from './useDisplayOffsetKeyboardControl';
 import { useCellStates } from './useCellStates';
@@ -11,10 +11,10 @@ const map = [
     [1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -50,12 +50,13 @@ const useSkeleton = (scale, displayOffsetX, displayOffsetY) => {
 };
 
 export const useEngine = ({ ctx, canvas, width, height }) => {
-    const [displayOffsetX, displayOffsetY] = useDisplayOffsetKeyboardControl();
+    const [displayOffsetX, displayOffsetY] = useDisplayOffsetKeyboardControl({ canvas });
     const skeleton = useSkeleton(SCALE, displayOffsetX, displayOffsetY);
     const getShortestPath = useGetShortestPath({ map });
     const { clickedCell, hoveredCell, fromCell, toCell } = useCellStates({ skeleton, map, canvas, scale: SCALE });
+    const [path, setPath] = useState();
 
-    const grid = useGrid({ ctx, skeleton, map, clickedCell, hoveredCell, fromCell, toCell });
+    const grid = useGrid({ ctx, skeleton, map, clickedCell, hoveredCell, fromCell, toCell, path });
 
     const clearCanvas = useCallback(() => {
         ctx.fillStyle = 'black';
@@ -63,9 +64,26 @@ export const useEngine = ({ ctx, canvas, width, height }) => {
     }, [ctx, width, height]);
 
     useEffect(() => {
-        // todo WIP
-        window.getShortestPath = getShortestPath;
+        let isMounted = true;
 
+        if (!fromCell || !toCell) {
+            setPath(null);
+
+            return;
+        }
+
+        (async () => {
+            const { path: shortestPath } = await getShortestPath(fromCell, toCell);
+
+            isMounted && setPath(shortestPath);
+        })();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [fromCell, toCell, setPath, getShortestPath]);
+
+    useEffect(() => {
         let id = window.requestAnimationFrame(function draw() {
             if (!ctx) {
                 return;

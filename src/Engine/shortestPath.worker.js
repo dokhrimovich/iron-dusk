@@ -68,7 +68,7 @@ self.onmessage = function(event) {
             });
     }
 
-    let pathCell = prev[to]; // todo check for unaccesable islands
+    let pathCell = prev[to];
     const pathAcc = [];
 
     while(pathCell !== null) {
@@ -77,7 +77,8 @@ self.onmessage = function(event) {
     }
 
     const distance = dist[to];
-    const path = pathAcc.length ? [...pathAcc.reverse(), to] : null;
+    const pathRaw = pathAcc.length ? [...pathAcc.reverse(), to] : null;
+    const path = pathRaw.map(strValue => strValue.split(':').map(Number));
 
     self.postMessage({ distance, path });
 };

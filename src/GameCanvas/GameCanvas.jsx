@@ -49,7 +49,7 @@ const useCanvasContext = () => {
 
         return () => {
             window.removeEventListener('resize', throttledResize);
-        }
+        };
     }, [resize, throttledResize]);
 
     return { containerRef, canvasRef, ctx, canvas, width, height };
