@@ -39,10 +39,10 @@ export const useGrid = ({ ctx, map, skeleton, clickedCell, hoveredCell, fromCell
         ctx.lineWidth = highlight ? 2 : 1;
         ctx.stroke();
 
-        if (color) {
-            ctx.fillStyle = color;
-            ctx.fill();
-        }
+        // if (color) {
+        //     ctx.fillStyle = color;
+        //     ctx.fill();
+        // }
 
         if (showCenter) {
             drawCircle(...center);
@@ -93,6 +93,10 @@ export const useGrid = ({ ctx, map, skeleton, clickedCell, hoveredCell, fromCell
             row.forEach((col, ci) => {
                 const { center: [x, y] } = col;
 
+                if (map[ri][ci] === 0) {
+                    return;
+                }
+
                 drawCell(col, {
                     highlight: hoveredCell && hoveredCell[0] === ri && hoveredCell[1] === ci,
                     showCenter: clickedCell && clickedCell[0] === ri && clickedCell[1] === ci,
@@ -108,7 +112,7 @@ export const useGrid = ({ ctx, map, skeleton, clickedCell, hoveredCell, fromCell
 
             drawPath(pathCells);
         }
-    }, [ctx, skeleton, clickedCell, hoveredCell, path, drawCell, drawText, drawPath, getColor]);
+    }, [ctx, map, skeleton, clickedCell, hoveredCell, path, drawCell, drawText, drawPath, getColor]);
 
     return useMemo(() => ({
         draw

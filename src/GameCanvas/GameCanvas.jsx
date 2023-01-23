@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback, useMemo, useState } from 'react';
 import { throttle } from 'utils/common';
 import { useEngine } from '../Engine';
+import { useDisplayOffsetKeyboardControl } from './useDisplayOffsetKeyboardControl';
 
 import style from './GameCanvas.scss';
 
@@ -28,11 +29,11 @@ const useCanvasContext = () => {
         }
 
         const ratio = 3 / 4;
-        const { width, height } = containerRect;
-        const screenWidthToBig = width * ratio > height;
+        const { width: w, height: h } = containerRect;
+        const screenWidthToBig = w * ratio > h;
 
-        const canvasW = screenWidthToBig ? height / ratio : width;
-        const canvasH = screenWidthToBig ? height : width * ratio;
+        const canvasW = screenWidthToBig ? h / ratio : w;
+        const canvasH = screenWidthToBig ? h : w * ratio;
 
         canvas.width = Math.round(canvasW);
         canvas.height = Math.round(canvasH);
@@ -55,8 +56,9 @@ const useCanvasContext = () => {
     return { containerRef, canvasRef, ctx, canvas, width, height };
 };
 
-export const GameCanvas = () => {
+export const GameCanvas = ({images}) => {
     const { containerRef, canvasRef, ctx, canvas, width, height } = useCanvasContext();
+    const [displayOffsetX, displayOffsetY] = useDisplayOffsetKeyboardControl({ canvas });
 
     // const canvasRef = useRef();
     // const containerRef = useRef();
@@ -80,7 +82,7 @@ export const GameCanvas = () => {
     //     }
     // });
 
-    useEngine({ ctx, canvas, width, height });
+    useEngine({ ctx, canvas, width, height, displayOffsetX, displayOffsetY });
 
     return (
         <div ref={containerRef} className={style.container}>

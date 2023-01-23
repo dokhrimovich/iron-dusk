@@ -1,20 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getHexVerticesOffset } from 'utils/common';
-import { useDisplayOffsetKeyboardControl } from './useDisplayOffsetKeyboardControl';
 import { useCellStates } from './useCellStates';
 import { useGrid } from './useGrid';
+import { useTerrain } from './useTerrain';
 import { useGetShortestPath } from './useGetShortestPath';
 
 const map = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0, 0, 0, 0 ,0],
-    [1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1],
-    [1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [2, 2, 2, 2, 2, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1],
+    [1, 1, 2, 2, 2, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 2, 2, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 0, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -49,14 +49,14 @@ const useSkeleton = (scale, displayOffsetX, displayOffsetY) => {
     }, [scale, displayOffsetX, displayOffsetY]);
 };
 
-export const useEngine = ({ ctx, canvas, width, height }) => {
-    const [displayOffsetX, displayOffsetY] = useDisplayOffsetKeyboardControl({ canvas });
+export const useEngine = ({ ctx, canvas, width, height, displayOffsetX, displayOffsetY }) => {
     const skeleton = useSkeleton(SCALE, displayOffsetX, displayOffsetY);
     const getShortestPath = useGetShortestPath({ map });
     const { clickedCell, hoveredCell, fromCell, toCell } = useCellStates({ skeleton, map, canvas, scale: SCALE });
     const [path, setPath] = useState();
 
     const grid = useGrid({ ctx, skeleton, map, clickedCell, hoveredCell, fromCell, toCell, path });
+    const terrain = useTerrain({ ctx, skeleton, map, scale: SCALE });
 
     const clearCanvas = useCallback(() => {
         ctx.fillStyle = 'black';
@@ -91,6 +91,8 @@ export const useEngine = ({ ctx, canvas, width, height }) => {
 
             clearCanvas();
 
+            terrain.drawGround();
+            terrain.drawGrass();
             grid.draw();
 
             id = window.requestAnimationFrame(draw);
