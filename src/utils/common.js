@@ -79,3 +79,11 @@ export const getHexVerticesOffset = (row, col) => {
         topLeft: [topLeftX, topLeftY]
     };
 };
+
+export const safeDrawImage = (ctx, img, ...params) => {
+    if (typeof img === 'string') {
+        return;
+    }
+
+    ctx.drawImage(img, ...params);
+};

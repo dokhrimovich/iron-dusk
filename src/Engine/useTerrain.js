@@ -1,37 +1,36 @@
 import { useMemo, useCallback, useContext } from 'react';
 import { ResourcesContext } from 'ResourceLoaders';
+import { safeDrawImage } from 'utils/common';
 
 const sqrt3 = Math.sqrt(3);
-export const useTerrain = ({ ctx, skeleton, scale, map }) => {
+export const useTerrain = ({ ctx, skeleton, scale, map, enteties }) => {
     const { images } = useContext(ResourcesContext);
-    const dx = (3 + sqrt3) / 4 * scale;
-    const dy = (sqrt3 + 1) / 4 * scale;
-    const [ddx, ddy] = [2*dx, 2*dy];
-    const [dddy, ddddy] = [3*dy, 4*dy];
+    const cellWidth = (3 + sqrt3) / 2 * scale;
+    const cellHeight = (sqrt3 + 1) / 2 * scale;
+    const d60x34 = useMemo(() => [cellWidth/2, cellHeight/2, cellWidth, cellHeight], [cellWidth, cellHeight]);
+    const d60x68 = useMemo(() => [cellWidth/2, cellHeight + cellHeight/2, cellWidth, cellHeight*2], [cellWidth, cellHeight]);
+    const d120x136 = useMemo(() => [cellWidth + cellWidth/2, cellHeight*3 + cellHeight/2, cellWidth*2, cellHeight*4], [cellWidth, cellHeight]);
 
-    const drawGroundSprite = useCallback((x, y) => {
-        const [x1, y1] = [(x - dx) , (y - dy)];
+    const drawSprite60x34 = useCallback((x, y, img) => {
+        const [dx, dy, cw, ch] = d60x34;
+        const [cx, cy] = [(x - dx) , (y - dy)];
 
-        ctx.drawImage(images.mud01, 0, 0, 60, 34, x1, y1, ddx, ddy);
-    }, [ctx, images, dx, dy, ddx, ddy]);
+        safeDrawImage(ctx, img, 0, 0, 60, 34, cx, cy, cw, ch);
+    }, [ctx, d60x34]);
 
-    const drawBoulderSprite = useCallback((x, y) => {
-        const [x1, y1] = [(x - dx) , (y - dddy)];
+    const drawSprite60x68 = useCallback((x, y, img) => {
+        const [dx, dy, cw, ch] = d60x68;
+        const [cx, cy] = [(x - dx) , (y - dy)];
 
-        ctx.drawImage(images.boulder01, 0, 0, 60, 68, x1, y1, ddx, ddddy);
-    }, [ctx, images, dx, ddx, dddy, ddddy]);
+        safeDrawImage(ctx, img, 0, 0, 60, 68, cx, cy, cw, ch);
+    }, [ctx, d60x68]);
 
-    const drawGrassBackSprite = useCallback((x, y) => {
-        const [x1, y1] = [(x - dx) , (y - dddy)];
+    const drawSprite160x136 = useCallback((x, y, img) => {
+        const [dx, dy, cw, ch] = d120x136;
+        const [cx, cy] = [(x - dx) , (y - dy)];
 
-        ctx.drawImage(images.grass_back01, 0, 0, 60, 68, x1, y1, ddx, ddddy);
-    }, [ctx, images, dx, ddx, dddy, ddddy]);
-
-    const drawGrassFrontSprite = useCallback((x, y) => {
-        const [x1, y1] = [(x - dx) , (y - dddy)];
-
-        ctx.drawImage(images.grass_front01, 0, 0, 60, 68, x1, y1, ddx, ddddy);
-    }, [ctx, images, dx, ddx, dddy, ddddy]);
+        safeDrawImage(ctx, img, 0, 0, 120, 136, cx, cy, cw, ch);
+    }, [ctx, d120x136]);
 
     const drawGround = useCallback(() => {
         if (!ctx || !images) {
@@ -42,10 +41,10 @@ export const useTerrain = ({ ctx, skeleton, scale, map }) => {
             row.slice().reverse().forEach((col) => {
                 const { center: [x, y] } = col;
 
-                drawGroundSprite(x, y);
+                drawSprite60x34(x, y, images.mud01);
             });
         });
-    }, [ctx, skeleton, drawGroundSprite, images]);
+    }, [ctx, skeleton, drawSprite60x34, images]);
 
     const drawGrass = useCallback(() => {
         if (!ctx || !images) {
@@ -56,38 +55,20 @@ export const useTerrain = ({ ctx, skeleton, scale, map }) => {
             row.slice().reverse().forEach((col, cri) => {
                 const ci = row.length - 1 - cri;
                 const { center: [x, y] } = col;
+                const someone = enteties.find(e => e.coord[0] === ri && e.coord[1] === ci);
 
                 if (map[ri][ci] === 0) {
-                    drawBoulderSprite(x, y);
+                    drawSprite60x68(x, y, images.boulder01);
                 }
 
                 if (map[ri][ci] === 2) {
-                    drawGrassBackSprite(x, y);
-                    drawGrassFrontSprite(x, y);
+                    drawSprite60x68(x, y, images.grass_back01);
+                    someone?.type === 1 && drawSprite160x136(x, y, images.warrior01);
+                    drawSprite60x68(x, y, images.grass_front01);
                 }
             });
         });
-    }, [ctx, map, skeleton, drawGrassBackSprite, images]);
-
-    // const drawGrassFront = useCallback(() => {
-    //     if (!ctx || !images) {
-    //         return;
-    //     }
-    //
-    //     skeleton.forEach((row, ri) => {
-    //         row.slice().reverse().forEach((col, cri) => {
-    //             const ci = row.length - 1 - cri;
-    //
-    //             if (map[ri][ci] !== 2) {
-    //                 return;
-    //             }
-    //
-    //             const { center: [x, y] } = col;
-    //
-    //             drawGrassFrontSprite(x, y);
-    //         });
-    //     });
-    // }, [ctx, map, skeleton, drawGrassFrontSprite, images]);
+    }, [ctx, map, skeleton, drawSprite60x68, drawSprite160x136, images, enteties]);
 
     return useMemo(() => ({
         drawGround,

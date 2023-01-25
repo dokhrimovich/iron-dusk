@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getHexVerticesOffset } from 'utils/common';
+import { useCallback, useEffect, useState } from 'react';
 import { useCellStates } from './useCellStates';
 import { useGrid } from './useGrid';
 import { useTerrain } from './useTerrain';
+import { useSkeleton } from './useSkeleton';
 import { useGetShortestPath } from './useGetShortestPath';
 
 const map = [
@@ -20,43 +20,21 @@ const map = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0, 0, 0, 0 ,0]
 ];
+const enteties = [{
+    type: 1,
+    coord: [2, 2]
+}];
 
-const SCALE = 50;
-
-const useSkeleton = (scale, displayOffsetX, displayOffsetY) => {
-    return useMemo(() => {
-        return map.map((row, ri) => row.map((col, ci) => {
-            const {
-                center: [x, y],
-                top: [topX, topY],
-                topRight: [topRightX, topRightY],
-                bottomRight: [bottomRightX, bottomRightY],
-                bottom: [bottomX, bottomY],
-                bottomLeft: [bottomLeftX, bottomLeftY],
-                topLeft: [topLeftX, topLeftY]
-            } = getHexVerticesOffset(ri, ci);
-
-            return {
-                center: [x * scale + displayOffsetX, y * scale + displayOffsetY],
-                top: [topX * scale + displayOffsetX, topY * scale + displayOffsetY],
-                topRight: [topRightX * scale + displayOffsetX, topRightY * scale + displayOffsetY],
-                bottomRight: [bottomRightX * scale + displayOffsetX, bottomRightY * scale + displayOffsetY],
-                bottom: [bottomX * scale + displayOffsetX, bottomY * scale + displayOffsetY],
-                bottomLeft: [bottomLeftX * scale + displayOffsetX, bottomLeftY * scale + displayOffsetY],
-                topLeft: [topLeftX * scale + displayOffsetX, topLeftY * scale + displayOffsetY]
-            };
-        }));
-    }, [scale, displayOffsetX, displayOffsetY]);
-};
+const SCALE = 25;
 
 export const useEngine = ({ ctx, canvas, width, height, displayOffsetX, displayOffsetY }) => {
-    const skeleton = useSkeleton(SCALE, displayOffsetX, displayOffsetY);
+    const skeleton = useSkeleton({ map, displayOffsetX, displayOffsetY, scale: SCALE });
     const getShortestPath = useGetShortestPath({ map });
     const { clickedCell, hoveredCell, fromCell, toCell } = useCellStates({ skeleton, map, canvas, scale: SCALE });
     const [path, setPath] = useState();
 
     const grid = useGrid({ ctx, skeleton, map, clickedCell, hoveredCell, fromCell, toCell, path });
-    const terrain = useTerrain({ ctx, skeleton, map, scale: SCALE });
+    const terrain = useTerrain({ ctx, skeleton, map, enteties, scale: SCALE });
 
     const clearCanvas = useCallback(() => {
         ctx.fillStyle = 'black';
@@ -92,8 +70,8 @@ export const useEngine = ({ ctx, canvas, width, height, displayOffsetX, displayO
             clearCanvas();
 
             terrain.drawGround();
-            terrain.drawGrass();
             grid.draw();
+            terrain.drawGrass();
 
             id = window.requestAnimationFrame(draw);
         });
