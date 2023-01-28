@@ -12,7 +12,7 @@ const map = [
     [1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 2, 2, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 2, 1, 1, 1, 2, 2, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 0, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -22,10 +22,13 @@ const map = [
 ];
 const enteties = [{
     type: 1,
+    coord: [2, 1]
+}, {
+    type: 1,
     coord: [2, 2]
 }];
 
-const SCALE = 25;
+const SCALE = 50;
 
 export const useEngine = ({ ctx, canvas, width, height, displayOffsetX, displayOffsetY }) => {
     const skeleton = useSkeleton({ map, displayOffsetX, displayOffsetY, scale: SCALE });
