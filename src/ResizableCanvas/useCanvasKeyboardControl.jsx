@@ -1,38 +1,30 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
-const defaultDisplayOffsetX = 10;
-const defaultDisplayOffsetY = 400;
+const listenToKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
 
-export const useDisplayOffsetKeyboardControl = ({ canvas }) => {
-    const [offset, setOffset] = useState([defaultDisplayOffsetX, defaultDisplayOffsetY]);
+export const useCanvasKeyboardControl = ({ canvasEl, setScale, setOffset }) => {
     const presetKeysRef = useRef(new Set());
     const scrollDiffRef = useRef([0, 0]);
     const scrollEndIdRef = useRef();
     const onKeydown = useCallback((event) => {
-        switch (event.key) {
-            case 'ArrowUp':
-            case 'ArrowDown':
-            case 'ArrowLeft':
-            case 'ArrowRight':
-                presetKeysRef.current.add(event.key);
-                event.preventDefault();
+        if (listenToKeys.includes(event.key)) {
+            event.preventDefault();
+            presetKeysRef.current.add(event.key);
         }
     }, [presetKeysRef]);
     const onKeyup = useCallback((event) => {
-        switch (event.key) {
-            case 'ArrowUp':
-            case 'ArrowDown':
-            case 'ArrowLeft':
-            case 'ArrowRight':
-                presetKeysRef.current.delete(event.key);
-                event.preventDefault();
+        if (listenToKeys.includes(event.key)) {
+            event.preventDefault();
+            presetKeysRef.current.delete(event.key);
         }
     }, [presetKeysRef]);
     const onScrollEnd = useCallback(() => {
         scrollDiffRef.current = [0, 0];
     }, [scrollDiffRef]);
     const onScroll = useCallback((event) => {
-        scrollDiffRef.current = [event.deltaX, event.deltaY];
+        event.preventDefault();
+
+        scrollDiffRef.current = [event.deltaX, event.deltaY, event.ctrlKey];
 
         if (scrollEndIdRef.current) {
             window.clearTimeout(scrollEndIdRef.current);
@@ -45,16 +37,15 @@ export const useDisplayOffsetKeyboardControl = ({ canvas }) => {
         window.document.documentElement.addEventListener('keydown', onKeydown);
         window.document.documentElement.addEventListener('keyup', onKeyup);
 
-        canvas?.addEventListener('wheel', onScroll);
-        // canvas?.addEventListener('scrollend', onScrollEnd);
+        canvasEl?.addEventListener('wheel', onScroll);
 
         return () => {
             window.document.documentElement.removeEventListener('keydown', onKeydown);
             window.document.documentElement.removeEventListener('keyup', onKeyup);
 
-            canvas?.removeEventListener('wheel', onScroll);
+            canvasEl?.removeEventListener('wheel', onScroll);
         };
-    }, [onKeydown, onKeyup, canvas, onScroll]);
+    }, [onKeydown, onKeyup, canvasEl, onScroll]);
 
     useEffect(() => {
         let id;
@@ -81,10 +72,16 @@ export const useDisplayOffsetKeyboardControl = ({ canvas }) => {
                 dX = -diff;
             }
 
-            const [scrollDx, scrollDy] = scrollDiffRef.current;
+            const [scrollDx, scrollDy, scrollWithCtrl] = scrollDiffRef.current;
 
-            (dX || dY) && setOffset(([x, y]) => [x + dX, y + dY]);
-            (scrollDx || scrollDy) && setOffset(([x, y]) => [x - scrollDx, y - scrollDy]);
+            if (dX || dY) {
+                setOffset(([x, y]) => [x + dX, y + dY]);
+            } else if (!scrollWithCtrl && (scrollDx || scrollDy)) {
+                setOffset(([x, y]) => [x - scrollDx, y - scrollDy]);
+            } else if (scrollWithCtrl) {
+                setScale(s => s - scrollDx / 2 - scrollDy / 2);
+            }
+
             prev = timestamp;
             id = window.requestAnimationFrame(move);
         });
@@ -93,7 +90,5 @@ export const useDisplayOffsetKeyboardControl = ({ canvas }) => {
             window.cancelAnimationFrame(id);
             prev = 0;
         };
-    }, [presetKeysRef, setOffset]);
-
-    return [...offset];
+    }, [presetKeysRef, setOffset, setScale]);
 };

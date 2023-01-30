@@ -1,10 +1,13 @@
 import { useMemo, useCallback, useContext } from 'react';
-import { ResourcesContext } from 'ResourceLoaders';
+import { GameCanvasContext } from 'GameCanvasContext';
+import { ResourcesContext } from 'ResourcesContext';
 import { safeDrawImage } from 'utils/common';
 
 const sqrt3 = Math.sqrt(3);
-export const useTerrain = ({ ctx, skeleton, scale, map, enteties }) => {
+export const useTerrain = ({ skeleton, map, enteties }) => {
+    const { canvas: { ctx }, scale } = useContext(GameCanvasContext);
     const { images } = useContext(ResourcesContext);
+
     const cellWidth = (3 + sqrt3) / 2 * scale;
     const cellHeight = (sqrt3 + 1) / 2 * scale;
     const d60x34 = useMemo(() => [cellWidth/2, cellHeight/2, cellWidth, cellHeight], [cellWidth, cellHeight]);
@@ -78,7 +81,7 @@ export const useTerrain = ({ ctx, skeleton, scale, map, enteties }) => {
                 }
             });
         });
-    }, [ctx, map, skeleton, drawSprite90x85, drawSprite160x136, images, enteties]);
+    }, [ctx, map, skeleton, drawSprite60x68, drawSprite90x85, drawSprite160x136, images, enteties]);
 
     return useMemo(() => ({
         drawGround,

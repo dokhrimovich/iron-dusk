@@ -1,7 +1,9 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useContext } from 'react';
+import { GameCanvasContext } from 'GameCanvasContext';
 import { COLOR } from './constants';
 
-export const useGrid = ({ ctx, map, skeleton, clickedCell, hoveredCell, fromCell, toCell, path }) => {
+export const useGrid = ({ map, skeleton, clickedCell, hoveredCell, fromCell, toCell, path }) => {
+    const { canvas: { ctx } } = useContext(GameCanvasContext);
     const drawCircle = useCallback((x, y) => {
         ctx.strokeStyle = 'white';
         ctx.beginPath();

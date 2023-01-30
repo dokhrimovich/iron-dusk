@@ -1,12 +1,12 @@
-import { useIsMounted } from 'common/useIsMounted';
 import { useEffect, useState, useCallback } from 'react';
+import { useIsMounted } from 'common/useIsMounted';
 
 const imageURLs = {
     mud01: 'img/mud01.png',
-    grass_back01: 'img/grass_back02.png',
-    grass_front01: 'img/grass_front02.png',
+    grass_back01: 'img/grass_back01.png',
+    grass_front01: 'img/grass_front01.png',
     boulder01: 'img/boulder01.png',
-    warrior01: 'img/warrior02.png'
+    warrior01: 'img/warrior01.png'
 };
 
 const fetchImg = (name, src) => {

@@ -1,6 +1,9 @@
-import { useCallback } from 'react';
+import { useCallback, useContext } from 'react';
+import { GameCanvasContext } from 'GameCanvasContext';
 
-export const useFindClosesCell = (skeleton, scale) => {
+export const useFindClosesCell = (skeleton) => {
+    const { scale } = useContext(GameCanvasContext);
+
     return useCallback((x, y) => {
         let min = Number.MAX_VALUE;
         let closestCell;

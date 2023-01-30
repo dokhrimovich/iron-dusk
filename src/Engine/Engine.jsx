@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useContext } from 'react';
+import { GameCanvasContext } from 'GameCanvasContext';
+
 import { useCellStates } from './useCellStates';
 import { useGrid } from './useGrid';
 import { useTerrain } from './useTerrain';
@@ -28,16 +30,15 @@ const enteties = [{
     coord: [2, 2]
 }];
 
-const SCALE = 50;
-
-export const useEngine = ({ ctx, canvas, width, height, displayOffsetX, displayOffsetY }) => {
-    const skeleton = useSkeleton({ map, displayOffsetX, displayOffsetY, scale: SCALE });
+export const Engine = () => {
+    const { canvas: { ctx, el: canvasEl, width, height } } = useContext(GameCanvasContext);
+    const skeleton = useSkeleton({ map });
     const getShortestPath = useGetShortestPath({ map });
-    const { clickedCell, hoveredCell, fromCell, toCell } = useCellStates({ skeleton, map, canvas, scale: SCALE });
+    const { clickedCell, hoveredCell, fromCell, toCell } = useCellStates({ skeleton, map, canvasEl });
     const [path, setPath] = useState();
 
-    const grid = useGrid({ ctx, skeleton, map, clickedCell, hoveredCell, fromCell, toCell, path });
-    const terrain = useTerrain({ ctx, skeleton, map, enteties, scale: SCALE });
+    const grid = useGrid({ skeleton, map, clickedCell, hoveredCell, fromCell, toCell, path });
+    const terrain = useTerrain({ skeleton, map, enteties });
 
     const clearCanvas = useCallback(() => {
         ctx.fillStyle = 'black';
@@ -82,5 +83,7 @@ export const useEngine = ({ ctx, canvas, width, height, displayOffsetX, displayO
         return () => {
             window.cancelAnimationFrame(id);
         };
-    }, [ctx, clearCanvas, grid, getShortestPath]);
+    }, [ctx, clearCanvas, grid, terrain, getShortestPath]);
+
+    return null;
 };

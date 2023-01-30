@@ -1,7 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useContext } from 'react';
+import { GameCanvasContext } from 'GameCanvasContext';
 import { getHexVerticesOffset } from 'utils/common';
 
-export const useSkeleton = ({ map, scale, displayOffsetX, displayOffsetY }) => {
+export const useSkeleton = ({ map }) => {
+    const { offset: [ displayOffsetX, displayOffsetY ], scale } = useContext(GameCanvasContext);
+
     return useMemo(() => {
         return map.map((row, ri) => row.map((col, ci) => {
             const {
