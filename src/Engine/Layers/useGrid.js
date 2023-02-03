@@ -1,9 +1,17 @@
 import { useMemo, useCallback, useContext } from 'react';
+import { ResourcesContext } from 'ResourcesContext';
 import { GameCanvasContext } from 'GameCanvasContext';
-import { COLOR } from './constants';
+import { COLOR } from '../constants';
 
-export const useGrid = ({ map, skeleton, clickedCell, hoveredCell, fromCell, toCell, path }) => {
+export const useGrid = ({ skeleton, clickedCell, hoveredCell, fromCell, toCell, path }) => {
     const { canvas: { ctx } } = useContext(GameCanvasContext);
+    const { maps: { arena01: arena } } = useContext(ResourcesContext);
+    const isNoGoCell = useCallback((ri, ci) => {
+        const groundCode = arena.groundLayer[ri][ci];
+        const terrainCode = arena.terrainLayer[ri][ci];
+
+        return groundCode === 0 || arena.noGoCodes.includes(groundCode) || arena.noGoCodes.includes(terrainCode);
+    }, [arena]);
     const drawCircle = useCallback((x, y) => {
         ctx.strokeStyle = 'white';
         ctx.beginPath();
@@ -50,7 +58,7 @@ export const useGrid = ({ map, skeleton, clickedCell, hoveredCell, fromCell, toC
             drawCircle(...center);
         }
     }, [ctx, drawCircle]);
-    const drawPath = useCallback((cells) => {
+    const drawDottedPath = useCallback((cells) => {
         if (cells.length < 2) {
             return;
         }
@@ -69,9 +77,7 @@ export const useGrid = ({ map, skeleton, clickedCell, hoveredCell, fromCell, toC
     }, [ctx]);
 
     const getColor = useCallback((ri, ci) => {
-        const isNoGoCell = map[ri][ci] === 0;
-
-        if (isNoGoCell) {
+        if (isNoGoCell(ri, ci)) {
             return COLOR.nogo;
         }
 
@@ -84,9 +90,9 @@ export const useGrid = ({ map, skeleton, clickedCell, hoveredCell, fromCell, toC
         }
 
         return null;
-    }, [map, fromCell, toCell]);
+    }, [isNoGoCell, fromCell, toCell]);
 
-    const draw = useCallback(() => {
+    const drawGrid = useCallback(() => {
         if (!ctx) {
             return;
         }
@@ -95,7 +101,7 @@ export const useGrid = ({ map, skeleton, clickedCell, hoveredCell, fromCell, toC
             row.forEach((col, ci) => {
                 const { center: [x, y] } = col;
 
-                if (map[ri][ci] === 0) {
+                if (isNoGoCell(ri, ci)) {
                     return;
                 }
 
@@ -108,15 +114,22 @@ export const useGrid = ({ map, skeleton, clickedCell, hoveredCell, fromCell, toC
                 drawText(x + 5, y - 5, `[${ri}:${ci}]`);
             });
         });
+    }, [ctx, isNoGoCell, skeleton, clickedCell, hoveredCell, drawCell, drawText, getColor]);
+
+    const drawPath = useCallback(() => {
+        if (!ctx) {
+            return;
+        }
 
         if (path && path.length) {
             const pathCells = path.map(([ri, ci]) => skeleton[ri][ci].center);
 
-            drawPath(pathCells);
+            drawDottedPath(pathCells);
         }
-    }, [ctx, map, skeleton, clickedCell, hoveredCell, path, drawCell, drawText, drawPath, getColor]);
+    }, [ctx, skeleton, path, drawDottedPath]);
 
     return useMemo(() => ({
-        draw
-    }), [draw]);
+        drawGrid,
+        drawPath
+    }), [drawGrid, drawPath]);
 };

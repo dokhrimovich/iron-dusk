@@ -1,13 +1,19 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useContext } from 'react';
+import { ResourcesContext } from 'ResourcesContext';
+import { findShortestPath } from 'utils/map';
 import ShortestPathWebWorker from './shortestPath.worker';
 
 const shortestPathWebWorker = new ShortestPathWebWorker();
 
-export const useGraph = ({ map }) => {
+export const useGraph = () => {
+    const { maps: { arena01: arena } } = useContext(ResourcesContext);
+
     return useMemo(() => {
         return Object.fromEntries(
-            map.map((row, ri) => row.map((col, ci) => {
-                if (!map[ri][ci]) {
+            arena.groundLayer.map((row, ri) => row.map((groundCode, ci) => {
+                const terrainCode = arena.terrainLayer[ri][ci];
+
+                if (groundCode === 0 || arena.noGoCodes.includes(groundCode) || arena.noGoCodes.includes(terrainCode)) {
                     return null;
                 }
 
@@ -23,17 +29,38 @@ export const useGraph = ({ map }) => {
                         [ri + 1, ci - 1], [ri + 1, ci]
                     ];
                 const validNeighbourCells = allNeighbourCells
-                    .filter(([nri, nci]) => map?.[nri]?.[nci])
+                    .filter(([nri, nci]) => {
+                        const grCode = arena.groundLayer[nri]?.[nci];
+                        const terraCode = arena.terrainLayer[nri]?.[nci];
+
+                        if (grCode === undefined || terraCode === undefined) {
+                            return false;
+                        }
+
+                        return grCode !== 0 && !arena.noGoCodes.includes(grCode) && !arena.noGoCodes.includes(terraCode);
+                    })
                     .map(([nri, nci]) => `${nri}:${nci}`);
 
                 return [`${ri}:${ci}`, validNeighbourCells];
             })).flat().filter(Boolean)
         );
-    }, [map]);
+    }, [arena]);
 };
 
-export const useGetShortestPath = ({ map }) => {
-    const graph = useGraph({ map });
+export const useGetShortestPathSync = () => {
+    const graph = useGraph();
+
+    return useCallback((fromCell, toCell) => {
+        return new Promise((resolve) => {
+            const { distance, path } = findShortestPath({ graph, fromCell, toCell });
+
+            resolve({ distance, path });
+        });
+    }, [graph]);
+};
+
+export const useGetShortestPath = () => {
+    const graph = useGraph();
 
     return useCallback((fromCell, toCell) => {
         let onMessage;

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useGameCanvas, useScale, useOffset, GameCanvasContext } from 'GameCanvasContext';
-import { useLoadImages, ResourcesContext } from 'ResourcesContext';
+import { useLoadResources, ResourcesContext } from 'ResourcesContext';
 import { ResizableCanvas } from 'ResizableCanvas';
 import { Engine } from 'Engine';
 
@@ -11,10 +11,10 @@ export const App = function() {
     const { scale, setScale } = useScale();
     const { offset, setOffset } = useOffset();
     const { canvas, setCanvas } = useGameCanvas();
-    const { isLoading, images } = useLoadImages();
+    const { isLoading, images, maps } = useLoadResources();
 
     return (
-        <ResourcesContext.Provider value={{ images }}>
+        <ResourcesContext.Provider value={{ images, maps }}>
             <GameCanvasContext.Provider value={{ canvas, scale, offset }}>
                 <div className={style.app}>
                     <header className={style.header}>
@@ -24,7 +24,7 @@ export const App = function() {
                     {!isLoading && <ResizableCanvas setCanvas={setCanvas} setOffset={setOffset} setScale={setScale} />}
                 </div>
 
-                <Engine />
+                {!isLoading && <Engine />}
             </GameCanvasContext.Provider>
         </ResourcesContext.Provider>
     );

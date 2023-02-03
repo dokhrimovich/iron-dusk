@@ -2,26 +2,11 @@ import { useCallback, useEffect, useState, useContext } from 'react';
 import { GameCanvasContext } from 'GameCanvasContext';
 
 import { useCellStates } from './useCellStates';
-import { useGrid } from './useGrid';
-import { useTerrain } from './useTerrain';
+import { useGrid } from './Layers/useGrid';
+import { useTerrain } from './Layers/useTerrain';
 import { useSkeleton } from './useSkeleton';
 import { useGetShortestPath } from './useGetShortestPath';
 
-const map = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0, 0, 0, 0 ,0],
-    [2, 2, 2, 2, 2, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1],
-    [1, 1, 2, 2, 2, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 2, 1, 1, 1, 2, 2, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 0, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0, 0, 0, 0 ,0]
-];
 const enteties = [{
     type: 1,
     coord: [2, 1]
@@ -32,13 +17,13 @@ const enteties = [{
 
 export const Engine = () => {
     const { canvas: { ctx, el: canvasEl, width, height } } = useContext(GameCanvasContext);
-    const skeleton = useSkeleton({ map });
-    const getShortestPath = useGetShortestPath({ map });
-    const { clickedCell, hoveredCell, fromCell, toCell } = useCellStates({ skeleton, map, canvasEl });
+    const skeleton = useSkeleton();
+    const getShortestPath = useGetShortestPath();
+    const { clickedCell, hoveredCell, fromCell, toCell } = useCellStates({ skeleton, canvasEl });
     const [path, setPath] = useState();
 
-    const grid = useGrid({ skeleton, map, clickedCell, hoveredCell, fromCell, toCell, path });
-    const terrain = useTerrain({ skeleton, map, enteties });
+    const grid = useGrid({ skeleton, clickedCell, hoveredCell, fromCell, toCell, path });
+    const terrain = useTerrain({ skeleton, enteties });
 
     const clearCanvas = useCallback(() => {
         ctx.fillStyle = 'black';
@@ -74,8 +59,9 @@ export const Engine = () => {
             clearCanvas();
 
             terrain.drawGround();
-            grid.draw();
-            terrain.drawGrass();
+            grid.drawGrid();
+            terrain.drawGroundTop();
+            grid.drawPath();
 
             id = window.requestAnimationFrame(draw);
         });

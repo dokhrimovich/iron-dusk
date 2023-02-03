@@ -1,12 +1,14 @@
 import { useMemo, useContext } from 'react';
 import { GameCanvasContext } from 'GameCanvasContext';
+import { ResourcesContext } from 'ResourcesContext';
 import { getHexVerticesOffset } from 'utils/common';
 
-export const useSkeleton = ({ map }) => {
+export const useSkeleton = () => {
+    const { maps: { arena01: arena } } = useContext(ResourcesContext);
     const { offset: [ displayOffsetX, displayOffsetY ], scale } = useContext(GameCanvasContext);
 
     return useMemo(() => {
-        return map.map((row, ri) => row.map((col, ci) => {
+        return arena.groundLayer.map((row, ri) => row.map((col, ci) => {
             const {
                 center: [x, y],
                 top: [topX, topY],
@@ -27,5 +29,5 @@ export const useSkeleton = ({ map }) => {
                 topLeft: [topLeftX * scale + displayOffsetX, topLeftY * scale + displayOffsetY]
             };
         }));
-    }, [map, scale, displayOffsetX, displayOffsetY]);
+    }, [arena, scale, displayOffsetX, displayOffsetY]);
 };

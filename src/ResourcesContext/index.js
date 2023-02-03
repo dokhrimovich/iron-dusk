@@ -1,2 +1,2 @@
-export { useLoadImages } from './useLoadImages';
+export { useLoadResources } from './useLoadResources';
 export { ResourcesContext } from './ResourcesContext';

@@ -1,8 +1,12 @@
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo, useContext } from 'react';
 import { throttle } from 'utils/common';
+import { ResourcesContext } from 'ResourcesContext';
+
 import { useFindClosesCell } from './useFindClosesCell';
 
-export const useCellStates = ({ skeleton, map, canvasEl }) => {
+export const useCellStates = ({ skeleton, canvasEl }) => {
+    const { maps: { arena01: arena } } = useContext(ResourcesContext);
+
     const [hoveredCell, setHoveredCell] = useState(null);
     const [clickedCell, setClickedCell] = useState(null);
     const [fromCell, setFromCell] = useState(null);
@@ -11,7 +15,12 @@ export const useCellStates = ({ skeleton, map, canvasEl }) => {
     const findClosesCell = useFindClosesCell(skeleton);
     const cellEq = (c1, c2) => c1 && c2 && c1[0] === c2[0] && c1[1] === c2[1]
         || c1 === c2;
-    const isNoGo = useCallback(([ri, ci]) => map[ri][ci] === 0, [map]);
+    const isNoGo = useCallback(([ri, ci]) => {
+        const groundCode = arena.groundLayer[ri][ci];
+        const terrainCode = arena.terrainLayer[ri][ci];
+
+        return groundCode === 0 || arena.noGoCodes.includes(groundCode) || arena.noGoCodes.includes(terrainCode);
+    }, [arena]);
 
     const onClick = useCallback((event) => {
         const { left, top } = event.currentTarget.getBoundingClientRect();

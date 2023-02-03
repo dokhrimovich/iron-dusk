@@ -9,6 +9,10 @@ const imageURLs = {
     warrior01: 'img/warrior01.png'
 };
 
+const mapsURLs = {
+    arena01: 'maps/arena01.json'
+};
+
 const fetchImg = (name, src) => {
     return new Promise((resolve) => {
         const img = new Image();
@@ -17,18 +21,27 @@ const fetchImg = (name, src) => {
         img.onerror = () => resolve([name, src]);
     });
 };
+const fetchMap = (name, src) => {
+    return fetch(src)
+        .then(response => response.json())
+        .then(data => [name, data]);
+};
 
-export const useLoadImages = () => {
+export const useLoadResources = () => {
     const isMounted = useIsMounted();
     const [timestamp, setTimestamp] = useState(Date.now());
     // const [error, setError] = useState();
     const [images, setImages] = useState();
-    const [isLoading, setIsLoading] = useState(false);
+    const [maps, setMaps] = useState();
+    const [isImagesLoading, setIsImagesLoading] = useState(true);
+    const [isMapsLoading, setIsMapsLoading] = useState(true);
 
     const load = useCallback(() => {
-        setIsLoading(true);
+        setIsImagesLoading(true);
+        setIsMapsLoading(true);
 
         const imagePromises = Object.entries(imageURLs).map(([name, src]) => fetchImg(name, src));
+        const mapPromises = Object.entries(mapsURLs).map(([name, src]) => fetchMap(name, src));
 
         Promise.allSettled(imagePromises)
             .then((results) => {
@@ -41,9 +54,23 @@ export const useLoadImages = () => {
                         .filter(r => r.status === 'fulfilled')
                         .map(r => r.value)
                 ));
-                setIsLoading(false);
+                setIsImagesLoading(false);
             });
-    }, [setImages, setIsLoading, isMounted]);
+
+        Promise.allSettled(mapPromises)
+            .then((results) => {
+                if (!isMounted()) {
+                    return;
+                }
+
+                setMaps(Object.fromEntries(
+                    results
+                        .filter(r => r.status === 'fulfilled')
+                        .map(r => r.value)
+                ));
+                setIsMapsLoading(false);
+            });
+    }, [setMaps, setIsMapsLoading, setImages, setIsImagesLoading, isMounted]);
 
     const refresh = useCallback(() => setTimestamp(Date.now()), [setTimestamp]);
 
@@ -51,5 +78,5 @@ export const useLoadImages = () => {
         load();
     }, [load, timestamp]);
 
-    return { isLoading, images, refresh };
+    return { isLoading: isImagesLoading || isMapsLoading, images, maps, refresh };
 };
