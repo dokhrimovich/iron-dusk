@@ -3,46 +3,9 @@ import { GameCanvasContext } from 'GameCanvasContext';
 import { ResourcesContext } from 'ResourcesContext';
 import { safeDrawImage } from 'utils/common';
 
-const sqrt3 = Math.sqrt(3);
-const cellWidthRaw = (3 + sqrt3) / 2;
-const cellHeightRaw = (sqrt3 + 1) / 2;
-
 export const useTerrain = ({ skeleton, enteties }) => {
     const { canvas: { ctx }, scale } = useContext(GameCanvasContext);
     const { images, maps: { arena01: arena } } = useContext(ResourcesContext);
-
-    /**
-     * Will return:
-     * 1-st param: offset from center of the cell to the left edge where sprite should be placed.
-     * 2-d param: how much sprite will take space horizontally on the canvas.
-     * Sprite with width 60px should fill in one cell. Therefor offset for such sprite should be half the width of the cell.
-     */
-    const getSpriteOffsetX = useCallback((width) => {
-        const cellWidth = cellWidthRaw * scale;
-        const ratio = width / 60;
-        const onCanvasWidth = cellWidth * ratio;
-
-        return [onCanvasWidth / 2, onCanvasWidth];
-    }, [scale]);
-    /**
-     * Will return:
-     * 1-st param: offset from center of the cell to the top edge where sprite should be placed.
-     * 2-d param: how much sprite will take space vertically on the canvas.
-     * Sprite with height 68px should fill in one cell. Where middle 34px should fit in the cell
-     * and bottom 17px are reserved for overlapping or additional parts to be rendered (like shadow)
-     */
-    const getSpriteOffsetY = useCallback((height) => {
-        const cellHeight = cellHeightRaw * scale;
-
-        if (height === 34) {
-            return [cellHeight/2, cellHeight];
-        }
-
-        const ratio = height / 34;
-        const onCanvasHeight = (cellHeight) * ratio;
-
-        return [onCanvasHeight - cellHeight, onCanvasHeight];
-    }, [scale]);
 
     const findGroundImage = useCallback((ri, ci) => {
         const code = arena.groundLayer[ri][ci];
@@ -57,12 +20,18 @@ export const useTerrain = ({ skeleton, enteties }) => {
     }, [arena]);
 
     const drawSprite = useCallback((x, y, img) => {
-        const [dx, cw] = getSpriteOffsetX(img.width);
-        const [dy, ch] = getSpriteOffsetY(img.height);
-        const [cx, cy] = [(x - dx) , (y - dy)];
+        const { image, offsets } = img || {};
 
-        safeDrawImage(ctx, img, 0, 0, img.width, img.height, cx, cy, cw, ch);
-    }, [ctx, getSpriteOffsetX, getSpriteOffsetY]);
+        if (!image) {
+            return;
+        }
+
+        const { dx, dy, cw, ch } = offsets;
+        const [dX, dY, cW, cH] = [dx * scale, dy * scale, cw * scale, ch * scale];
+        const [cX, cY] = [(x - dX) , (y - dY)];
+
+        safeDrawImage(ctx, image, 0, 0, image.width, image.height, cX, cY, cW, cH);
+    }, [ctx, scale]);
 
     const drawGround = useCallback(() => {
         if (!ctx) {
