@@ -1,11 +1,12 @@
-import { useMemo, useCallback, useContext } from 'react';
-import { ResourcesContext } from 'ResourcesContext';
-import { GameCanvasContext } from 'GameCanvasContext';
+import { useMemo, useCallback } from 'react';
+import { useResourcesContext } from 'Context/ResourcesContext';
+import { useGameCanvasContext } from 'Context/GameCanvasContext';
 import { COLOR } from '../constants';
 
 export const useGrid = ({ skeleton, clickedCell, hoveredCell, fromCell, toCell, path }) => {
-    const { canvas: { ctx } } = useContext(GameCanvasContext);
-    const { maps: { arena01: arena } } = useContext(ResourcesContext);
+    const { canvas: { ctx } } = useGameCanvasContext();
+    const { maps: { arena01: arena } } = useResourcesContext();
+
     const isNoGoCell = useCallback((ri, ci) => {
         const groundCode = arena.groundLayer[ri][ci];
         const terrainCode = arena.terrainLayer[ri][ci];

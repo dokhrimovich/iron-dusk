@@ -1,10 +1,11 @@
 import React, { useEffect, useCallback, useMemo, useState, useRef } from 'react';
 import { throttle } from 'utils/common';
 import { useCanvasKeyboardControl } from './useCanvasKeyboardControl';
+import { useGameCanvasContext, SET_CANVAS } from 'Context/GameCanvasContext';
 
 import style from './ResizableCanvas.scss';
 
-const useCanvas = ({ containerRef }) => {
+const useCanvasManager = ({ containerRef }) => {
     const [ctx, setCtx] = useState();
     const [canvasEl, setCanvas] = useState();
     const [width, setWidth] = useState(0);
@@ -47,22 +48,24 @@ const useCanvas = ({ containerRef }) => {
         return () => {
             window.removeEventListener('resize', throttledOnResize);
         };
-    }, [resizeCanvas, throttledOnResize]);
+    }, [containerRef, resizeCanvas, throttledOnResize]);
 
     return { containerRef, canvasRef, ctx, canvasEl, width, height };
 };
 
-export const ResizableCanvas = ({ setCanvas, setOffset, setScale }) => {
+export const ResizableCanvas = () => {
+    const { dispatch } = useGameCanvasContext();
     const containerRef = useRef();
-    const { canvasRef, ctx, canvasEl, width, height } = useCanvas({ containerRef });
+    const { canvasRef, ctx, canvasEl, width, height } = useCanvasManager({ containerRef });
 
-    useCanvasKeyboardControl({ canvasEl, setOffset, setScale });
+    useCanvasKeyboardControl({ canvasEl });
 
     useEffect(() => {
-        setCanvas({
-            ctx, el: canvasEl, width, height
+        dispatch({
+            type: SET_CANVAS,
+            canvas: { ctx, el: canvasEl, width, height }
         });
-    }, [setCanvas, ctx, canvasEl, width, height]);
+    }, [dispatch, ctx, canvasEl, width, height]);
 
     return (
         <div ref={containerRef} className={style.container}>

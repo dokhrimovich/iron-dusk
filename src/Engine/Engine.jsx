@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState, useContext } from 'react';
-import { GameCanvasContext } from 'GameCanvasContext';
+import { useCallback, useEffect, useState } from 'react';
+import { useGameCanvasContext } from 'Context/GameCanvasContext';
 
 import { useCellStates } from './useCellStates';
 import { useGrid } from './Layers/useGrid';
@@ -16,7 +16,7 @@ const enteties = [{
 }];
 
 export const Engine = () => {
-    const { canvas: { ctx, el: canvasEl, width, height } } = useContext(GameCanvasContext);
+    const { canvas: { ctx, el: canvasEl, width, height } } = useGameCanvasContext();
     const skeleton = useSkeleton();
     const getShortestPath = useGetShortestPath();
     const { clickedCell, hoveredCell, fromCell, toCell } = useCellStates({ skeleton, canvasEl });

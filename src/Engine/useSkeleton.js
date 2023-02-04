@@ -1,11 +1,11 @@
-import { useMemo, useContext } from 'react';
-import { GameCanvasContext } from 'GameCanvasContext';
-import { ResourcesContext } from 'ResourcesContext';
+import { useMemo } from 'react';
+import { useResourcesContext } from 'Context/ResourcesContext';
+import { useGameCanvasContext } from 'Context/GameCanvasContext';
 import { getHexVerticesOffset } from 'utils/common';
 
 export const useSkeleton = () => {
-    const { maps: { arena01: arena } } = useContext(ResourcesContext);
-    const { offset: [ displayOffsetX, displayOffsetY ], scale } = useContext(GameCanvasContext);
+    const { maps: { arena01: arena } } = useResourcesContext();
+    const { offset: [ displayOffsetX, displayOffsetY ], scale } = useGameCanvasContext();
 
     return useMemo(() => {
         return arena.groundLayer.map((row, ri) => row.map((col, ci) => {

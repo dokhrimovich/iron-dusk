@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState, useMemo, useContext } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { throttle } from 'utils/common';
-import { ResourcesContext } from 'ResourcesContext';
+import { useResourcesContext } from 'Context/ResourcesContext';
 
 import { useFindClosesCell } from './useFindClosesCell';
 
 export const useCellStates = ({ skeleton, canvasEl }) => {
-    const { maps: { arena01: arena } } = useContext(ResourcesContext);
+    const { maps: { arena01: arena } } = useResourcesContext();
 
     const [hoveredCell, setHoveredCell] = useState(null);
     const [clickedCell, setClickedCell] = useState(null);

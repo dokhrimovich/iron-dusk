@@ -1,12 +1,12 @@
-import { useMemo, useCallback, useContext } from 'react';
-import { ResourcesContext } from 'ResourcesContext';
+import { useMemo, useCallback } from 'react';
+import { useResourcesContext } from 'Context/ResourcesContext';
 import { findShortestPath } from 'utils/map';
 import ShortestPathWebWorker from './shortestPath.worker';
 
 const shortestPathWebWorker = new ShortestPathWebWorker();
 
 export const useGraph = () => {
-    const { maps: { arena01: arena } } = useContext(ResourcesContext);
+    const { maps: { arena01: arena } } = useResourcesContext();
 
     return useMemo(() => {
         return Object.fromEntries(

@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { useGameCanvasContext, INCREMENT_OFFSET, INCREMENT_SCALE } from 'Context/GameCanvasContext';
 
 const listenToKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
 
-export const useCanvasKeyboardControl = ({ canvasEl, setScale, setOffset }) => {
+export const useCanvasKeyboardControl = ({ canvasEl }) => {
+    const { dispatch } = useGameCanvasContext();
     const presetKeysRef = useRef(new Set());
     const scrollDiffRef = useRef([0, 0]);
     const scrollEndIdRef = useRef();
@@ -32,6 +34,18 @@ export const useCanvasKeyboardControl = ({ canvasEl, setScale, setOffset }) => {
 
         scrollEndIdRef.current = window.setTimeout(onScrollEnd, 100);
     }, [onScrollEnd]);
+    const changeOffset = useCallback((dx, dy) => {
+        dispatch({
+            type: INCREMENT_OFFSET,
+            dx, dy
+        });
+    }, [dispatch]);
+    const changeScale = useCallback((ds) => {
+        dispatch({
+            type: INCREMENT_SCALE,
+            ds
+        });
+    }, [dispatch]);
 
     useEffect(() => {
         window.document.documentElement.addEventListener('keydown', onKeydown);
@@ -75,11 +89,11 @@ export const useCanvasKeyboardControl = ({ canvasEl, setScale, setOffset }) => {
             const [scrollDx, scrollDy, scrollWithCtrl] = scrollDiffRef.current;
 
             if (dX || dY) {
-                setOffset(([x, y]) => [x + dX, y + dY]);
+                changeOffset(dX, dY);
             } else if (!scrollWithCtrl && (scrollDx || scrollDy)) {
-                setOffset(([x, y]) => [x - scrollDx, y - scrollDy]);
+                changeOffset(-scrollDx, -scrollDy);
             } else if (scrollWithCtrl) {
-                setScale(s => s - scrollDx / 2 - scrollDy / 2);
+                changeScale(-(scrollDx / 2 + scrollDy / 2));
             }
 
             prev = timestamp;
@@ -90,5 +104,5 @@ export const useCanvasKeyboardControl = ({ canvasEl, setScale, setOffset }) => {
             window.cancelAnimationFrame(id);
             prev = 0;
         };
-    }, [presetKeysRef, setOffset, setScale]);
+    }, [presetKeysRef, changeOffset, changeScale]);
 };

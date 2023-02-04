@@ -1,11 +1,11 @@
-import { useMemo, useCallback, useContext } from 'react';
-import { GameCanvasContext } from 'GameCanvasContext';
-import { ResourcesContext } from 'ResourcesContext';
+import { useMemo, useCallback } from 'react';
+import { useGameCanvasContext } from 'Context/GameCanvasContext';
+import { useResourcesContext } from 'Context/ResourcesContext';
 import { safeDrawImage } from 'utils/common';
 
 export const useTerrain = ({ skeleton, enteties }) => {
-    const { canvas: { ctx }, scale } = useContext(GameCanvasContext);
-    const { images, maps: { arena01: arena } } = useContext(ResourcesContext);
+    const { canvas: { ctx }, scale } = useGameCanvasContext();
+    const { images, maps: { arena01: arena } } = useResourcesContext();
 
     const findGroundImage = useCallback((ri, ci) => {
         const code = arena.groundLayer[ri][ci];

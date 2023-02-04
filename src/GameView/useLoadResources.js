@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useIsMounted } from 'common/useIsMounted';
+import { useResourcesContext, SET_IMAGES, SET_MAPS, SET_IS_LOADING } from 'Context/ResourcesContext';
 
 const imageURLs = {
     mud01: 'img/mud01.png',
@@ -76,11 +76,9 @@ const fetchMap = (name, src) => {
 };
 
 export const useLoadResources = () => {
-    const isMounted = useIsMounted();
+    const { dispatch } = useResourcesContext();
     const [timestamp, setTimestamp] = useState(Date.now());
     // const [error, setError] = useState();
-    const [images, setImages] = useState();
-    const [maps, setMaps] = useState();
     const [isImagesLoading, setIsImagesLoading] = useState(true);
     const [isMapsLoading, setIsMapsLoading] = useState(true);
 
@@ -93,32 +91,34 @@ export const useLoadResources = () => {
 
         Promise.allSettled(imagePromises)
             .then((results) => {
-                if (!isMounted()) {
-                    return;
-                }
-
-                setImages(Object.fromEntries(
+                const images = (Object.fromEntries(
                     results
                         .filter(r => r.status === 'fulfilled')
                         .map(r => r.value)
                 ));
+
+                dispatch({
+                    type: SET_IMAGES,
+                    images
+                });
                 setIsImagesLoading(false);
             });
 
         Promise.allSettled(mapPromises)
             .then((results) => {
-                if (!isMounted()) {
-                    return;
-                }
-
-                setMaps(Object.fromEntries(
+                const maps = Object.fromEntries(
                     results
                         .filter(r => r.status === 'fulfilled')
                         .map(r => r.value)
-                ));
+                );
+
+                dispatch({
+                    type: SET_MAPS,
+                    maps
+                });
                 setIsMapsLoading(false);
             });
-    }, [setMaps, setIsMapsLoading, setImages, setIsImagesLoading, isMounted]);
+    }, [dispatch, setIsMapsLoading, setIsImagesLoading]);
 
     const refresh = useCallback(() => setTimestamp(Date.now()), [setTimestamp]);
 
@@ -126,5 +126,12 @@ export const useLoadResources = () => {
         load();
     }, [load, timestamp]);
 
-    return { isLoading: isImagesLoading || isMapsLoading, images, maps, refresh };
+    useEffect(() => {
+        dispatch({
+            type: SET_IS_LOADING,
+            isLoading: isMapsLoading || isImagesLoading
+        });
+    }, [dispatch, isImagesLoading, isMapsLoading]);
+
+    return refresh;
 };
