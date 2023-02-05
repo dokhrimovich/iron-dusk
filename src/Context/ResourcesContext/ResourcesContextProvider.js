@@ -1,22 +1,16 @@
-import React, { useReducer, createContext, useContext } from 'react';
-import { reducer } from './reducer';
+import React, { createContext, useContext } from 'react';
+import { useResourcesReducer } from './reducer';
 
 export { SET_IS_LOADING, SET_IMAGES, SET_MAPS, SET_SOUNDS } from './reducer';
 
-const initialState = {
-    isLoading: true,
-    images: null,
-    maps: null,
-    sounds: null
-};
-
-const ResourcesProviderContext = createContext([initialState, () => {}]);
+const ResourcesProviderContext = createContext({});
 
 ResourcesProviderContext.displayName = 'Resources';
 
 export const useResourcesContext = () => useContext(ResourcesProviderContext);
+
 export const ResourcesProvider = ({ children }) => {
-    const [{ isLoading, images, maps, sounds }, dispatch] = useReducer(reducer, null, () => initialState);
+    const [{ isLoading, images, maps, sounds }, dispatch] = useResourcesReducer();
 
     return (
         <ResourcesProviderContext.Provider value={{ isLoading, images, maps, sounds, dispatch }}>

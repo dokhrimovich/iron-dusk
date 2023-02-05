@@ -1,9 +1,18 @@
+import { useReducer } from 'react';
+
 export const SET_IMAGES = 'SET_IMAGES';
 export const SET_MAPS = 'SET_MAPS';
 export const SET_SOUNDS = 'SET_SOUNDS';
 export const SET_IS_LOADING = 'SET_IS_LOADING';
 
-export const reducer = (state, action) => {
+const initialState = {
+    isLoading: true,
+    images: null,
+    maps: null,
+    sounds: null
+};
+
+const reducer = (state, action) => {
     switch (action.type) {
         case SET_IS_LOADING:
             return {
@@ -30,3 +39,5 @@ export const reducer = (state, action) => {
             throw new Error('Unexpected type');
     }
 };
+
+export const useResourcesReducer = () => useReducer(reducer, null, () => initialState);

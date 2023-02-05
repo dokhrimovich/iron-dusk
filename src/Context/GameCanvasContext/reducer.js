@@ -1,3 +1,5 @@
+import { useReducer } from 'react';
+
 export const SET_SCALE = 'SET_SCALE';
 export const INCREMENT_SCALE = 'INCREMENT_SCALE';
 export const SET_OFFSET = 'SET_OFFSET';
@@ -6,6 +8,15 @@ export const SET_CANVAS = 'SET_CANVAS';
 
 const minScale = 25;
 const maxScale = 75;
+const defaultDisplayOffsetX = 10;
+const defaultDisplayOffsetY = 400;
+const defaultScale = 50;
+
+const initialState = {
+    canvas: {},
+    scale: defaultScale,
+    offset: [defaultDisplayOffsetX, defaultDisplayOffsetY]
+};
 
 const setScaleSafe = (prev, val) => {
     if (typeof val !== 'number') {
@@ -22,7 +33,8 @@ const setScaleSafe = (prev, val) => {
 
     return val;
 };
-export const reducer = (state, action) => {
+
+const reducer = (state, action) => {
     switch (action.type) {
         case SET_SCALE:
             return {
@@ -54,3 +66,5 @@ export const reducer = (state, action) => {
             throw new Error('Unexpected type');
     }
 };
+
+export const useGameCanvasReducer = () => useReducer(reducer, null, () => initialState);
