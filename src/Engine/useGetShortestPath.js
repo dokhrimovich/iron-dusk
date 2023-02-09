@@ -1,19 +1,30 @@
 import { useMemo, useCallback } from 'react';
 import { useResourcesContext } from 'Context/ResourcesContext';
-import { findShortestPath } from 'utils/map';
+import { useGameStateContext } from 'Context/GameStateContext';
+import { findShortestPath, cellEq } from 'utils/map';
 import ShortestPathWebWorker from './shortestPath.worker';
 
 const shortestPathWebWorker = new ShortestPathWebWorker();
 
 export const useGraph = () => {
-    const { maps: { arena01: arena } } = useResourcesContext();
+    const { maps } = useResourcesContext();
+    const { arena: arenaName, mainState, teamAllys, teamEnemies, entities, whoseTurn } = useGameStateContext();
+    const arena = mainState === 'BATTLE' ? maps[arenaName] : null;
 
     return useMemo(() => {
+        if (!arena) {
+            return {};
+        }
+
+        const isThereAnybodyOutThere = ([ri, ci]) => {
+            return teamAllys.some(ch => ch.id !== whoseTurn && cellEq(ch.cell, [ri, ci]))
+                || teamEnemies.some(ch => cellEq(ch.cell, [ri, ci]))
+                || entities.some(ch => cellEq(ch.cell, [ri, ci]));
+        };
+
         return Object.fromEntries(
             arena.groundLayer.map((row, ri) => row.map((groundCode, ci) => {
-                const terrainCode = arena.terrainLayer[ri][ci];
-
-                if (groundCode === 0 || arena.noGoCodes.includes(groundCode) || arena.noGoCodes.includes(terrainCode)) {
+                if (arena.isNoGoCell([ri, ci]) || isThereAnybodyOutThere([ri, ci])) {
                     return null;
                 }
 
@@ -30,24 +41,17 @@ export const useGraph = () => {
                     ];
                 const validNeighbourCells = allNeighbourCells
                     .filter(([nri, nci]) => {
-                        const grCode = arena.groundLayer[nri]?.[nci];
-                        const terraCode = arena.terrainLayer[nri]?.[nci];
-
-                        if (grCode === undefined || terraCode === undefined) {
-                            return false;
-                        }
-
-                        return grCode !== 0 && !arena.noGoCodes.includes(grCode) && !arena.noGoCodes.includes(terraCode);
+                        return !arena.isNoGoCell([nri, nci]) && !isThereAnybodyOutThere([nri, nci]);
                     })
                     .map(([nri, nci]) => `${nri}:${nci}`);
 
                 return [`${ri}:${ci}`, validNeighbourCells];
             })).flat().filter(Boolean)
         );
-    }, [arena]);
+    }, [arena, teamAllys, teamEnemies, entities, whoseTurn]);
 };
 
-export const useGetShortestPathSync = () => {
+const useGetShortestPathSync = () => {
     const graph = useGraph();
 
     return useCallback((fromCell, toCell) => {
@@ -59,7 +63,7 @@ export const useGetShortestPathSync = () => {
     }, [graph]);
 };
 
-export const useGetShortestPath = () => {
+const useGetShortestPathAsync = () => {
     const graph = useGraph();
 
     return useCallback((fromCell, toCell) => {
@@ -81,3 +85,5 @@ export const useGetShortestPath = () => {
 
     }, [graph]);
 };
+
+export const useGetShortestPath = useGetShortestPathAsync;

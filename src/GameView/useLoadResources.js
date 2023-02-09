@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useResourcesContext, SET_IMAGES, SET_MAPS, SET_IS_LOADING } from 'Context/ResourcesContext';
 
 const imageURLs = {
+    active_character_marker_back: 'img/active_character_marker_back.png',
+    active_character_marker_front: 'img/active_character_marker_front.png',
     mud01: 'img/mud01.png',
     grass_back01: 'img/grass_back01.png',
     grass_front01: 'img/grass_front01.png',
@@ -69,10 +71,28 @@ const fetchImg = (name, src) => {
     });
 };
 
+const enhanceMap = (map) => {
+    const { groundLayer, terrainLayer, noGoCodes } = map;
+
+    return {
+        ...map,
+        isNoGoCell: ([ri, ci]) => {
+            const groundCode = groundLayer[ri]?.[ci];
+            const terrainCode = terrainLayer[ri]?.[ci];
+
+            if (groundCode === undefined || terrainCode === undefined) {
+                return false;
+            }
+
+            return groundCode === 0 || noGoCodes.includes(groundCode) || noGoCodes.includes(terrainCode);
+        }
+    };
+};
+
 const fetchMap = (name, src) => {
     return fetch(src)
         .then(response => response.json())
-        .then(data => [name, data]);
+        .then(data => [name, enhanceMap(data)]);
 };
 
 export const useLoadResources = () => {

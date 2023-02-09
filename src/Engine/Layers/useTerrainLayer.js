@@ -1,11 +1,16 @@
 import { useMemo, useCallback } from 'react';
-import { useGameCanvasContext } from 'Context/GameCanvasContext';
+import { cellEq } from 'utils/map';
+
 import { useResourcesContext } from 'Context/ResourcesContext';
+import { useGameStateContext } from 'Context/GameStateContext';
+import { useGameCanvasContext } from 'Context/GameCanvasContext';
 import { safeDrawImage } from 'utils/common';
 
-export const useTerrain = ({ skeleton, enteties }) => {
+export const useTerrainLayer = ({ skeleton }) => {
     const { canvas: { ctx }, scale } = useGameCanvasContext();
-    const { images, maps: { arena01: arena } } = useResourcesContext();
+    const { arena: arenaName, mainState, teamAllys, whoseTurn } = useGameStateContext();
+    const { images, maps } = useResourcesContext();
+    const arena = mainState === 'BATTLE' ? maps[arenaName] : null;
 
     const findGroundImage = useCallback((ri, ci) => {
         const code = arena.groundLayer[ri][ci];
@@ -34,7 +39,7 @@ export const useTerrain = ({ skeleton, enteties }) => {
     }, [ctx, scale]);
 
     const drawGround = useCallback(() => {
-        if (!ctx) {
+        if (!ctx || !arena) {
             return;
         }
 
@@ -50,10 +55,10 @@ export const useTerrain = ({ skeleton, enteties }) => {
                 }
             });
         });
-    }, [ctx, skeleton, findGroundImage, drawSprite, images]);
+    }, [ctx, arena, skeleton, findGroundImage, drawSprite, images]);
 
     const drawGroundTop = useCallback(() => {
-        if (!ctx) {
+        if (!ctx || !arena) {
             return;
         }
 
@@ -61,13 +66,18 @@ export const useTerrain = ({ skeleton, enteties }) => {
             row.slice().reverse().forEach((col, cri) => {
                 const ci = row.length - 1 - cri;
                 const { center: [x, y] } = col;
-                const someone = enteties.find(e => e.coord[0] === ri && e.coord[1] === ci);
+                const ally = teamAllys.find(character => cellEq(character.cell, [ri, ci]));
+                const isActiveAlly = ally && ally.id === whoseTurn;
+
+                const allySprite = ally && images[ally.sprite];
 
                 const image = findTerrainImage(ri, ci);
 
-                if (Array.isArray(image) && someone?.type === 1) {
+                if (Array.isArray(image) && ally) {
                     drawSprite(x, y, images[image[0]]);
-                    drawSprite(x, y, images.warrior01);
+                    isActiveAlly && drawSprite(x, y, images.active_character_marker_back);
+                    drawSprite(x, y, allySprite);
+                    isActiveAlly && drawSprite(x, y, images.active_character_marker_front);
                     drawSprite(x, y, images[image[1]]);
 
                     return;
@@ -81,12 +91,14 @@ export const useTerrain = ({ skeleton, enteties }) => {
                     }
                 }
 
-                if (someone?.type === 1) {
-                    drawSprite(x, y, images.warrior01);
+                if (ally) {
+                    isActiveAlly && drawSprite(x, y, images.active_character_marker_back);
+                    drawSprite(x, y, allySprite);
+                    isActiveAlly && drawSprite(x, y, images.active_character_marker_front);
                 }
             });
         });
-    }, [ctx, skeleton, drawSprite, findTerrainImage, images, enteties]);
+    }, [ctx, arena, skeleton, drawSprite, findTerrainImage, images, teamAllys, whoseTurn]);
 
     return useMemo(() => ({
         drawGround,

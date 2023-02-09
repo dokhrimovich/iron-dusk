@@ -72,7 +72,9 @@ export const findShortestPath = ({ graph, fromCell, toCell }) => {
 
     const distance = dist[to];
     const pathRaw = pathAcc.length ? [...pathAcc.reverse(), to] : null;
-    const path = pathRaw.map(strValue => strValue.split(':').map(Number));
+    const path = pathRaw?.map(strValue => strValue.split(':').map(Number)) || null;
 
     return { distance, path };
 };
+
+export const cellEq = (c1, c2) => c1 === c2 || c1 && c2 && c1[0] === c2[0] && c1[1] === c2[1];

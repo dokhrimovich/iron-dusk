@@ -1,29 +1,26 @@
-import { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useGameCanvasContext } from 'Context/GameCanvasContext';
+import { useGameStateContext, SWITCH_TO_BATTLE, SET_WHOSE_TURN } from 'Context/GameStateContext';
+
+import { createCharacter } from 'BattleCharacters/Warrior';
 
 import { useCellStates } from './useCellStates';
-import { useGrid } from './Layers/useGrid';
-import { useTerrain } from './Layers/useTerrain';
+import { useGridLayer } from './Layers/useGridLayer';
+import { useTerrainLayer } from './Layers/useTerrainLayer';
 import { useSkeleton } from './useSkeleton';
 import { useGetShortestPath } from './useGetShortestPath';
 
-const enteties = [{
-    type: 1,
-    coord: [2, 1]
-}, {
-    type: 1,
-    coord: [2, 2]
-}];
-
 export const Engine = () => {
+    const { teamAllys, dispatch } = useGameStateContext();
+
     const { canvas: { ctx, el: canvasEl, width, height } } = useGameCanvasContext();
     const skeleton = useSkeleton();
     const getShortestPath = useGetShortestPath();
-    const { clickedCell, hoveredCell, fromCell, toCell } = useCellStates({ skeleton, canvasEl });
+    const { hoveredCell, lastClickedCell } = useCellStates({ skeleton, canvasEl });
     const [path, setPath] = useState();
 
-    const grid = useGrid({ skeleton, clickedCell, hoveredCell, fromCell, toCell, path });
-    const terrain = useTerrain({ skeleton, enteties });
+    const gridLayer = useGridLayer({ skeleton, path, hoveredCell });
+    const terrainLayer = useTerrainLayer({ skeleton });
 
     const clearCanvas = useCallback(() => {
         ctx.fillStyle = 'black';
@@ -31,24 +28,27 @@ export const Engine = () => {
     }, [ctx, width, height]);
 
     useEffect(() => {
-        let isMounted = true;
+        dispatch({
+            type: SWITCH_TO_BATTLE,
+            arena: 'arena01',
+            teamAllys: [
+                createCharacter([2, 1]),
+                createCharacter([2, 2])
+            ],
+            teamEnemies: []
+        });
+    }, [dispatch]);
 
-        if (!fromCell || !toCell) {
-            setPath(null);
-
+    useEffect(() => {
+        if (!teamAllys?.length) {
             return;
         }
 
-        (async () => {
-            const { path: shortestPath } = await getShortestPath(fromCell, toCell);
-
-            isMounted && setPath(shortestPath);
-        })();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [fromCell, toCell, setPath, getShortestPath]);
+        dispatch({
+            type: SET_WHOSE_TURN,
+            whoseTurn: teamAllys[0].id
+        });
+    }, [teamAllys, dispatch]);
 
     useEffect(() => {
         let id = window.requestAnimationFrame(function draw() {
@@ -58,10 +58,10 @@ export const Engine = () => {
 
             clearCanvas();
 
-            terrain.drawGround();
-            grid.drawGrid();
-            terrain.drawGroundTop();
-            grid.drawPath();
+            terrainLayer.drawGround();
+            gridLayer.drawGrid();
+            terrainLayer.drawGroundTop();
+            gridLayer.drawPath();
 
             id = window.requestAnimationFrame(draw);
         });
@@ -69,7 +69,13 @@ export const Engine = () => {
         return () => {
             window.cancelAnimationFrame(id);
         };
-    }, [ctx, clearCanvas, grid, terrain, getShortestPath]);
+    }, [ctx, clearCanvas, gridLayer, terrainLayer, getShortestPath]);
 
-    return null;
+    return teamAllys
+        ?.filter(ally => ally?.Component)
+        ?.map(ally => {
+            const Component = ally?.Component;
+
+            return <Component key={ally.key} setPath={setPath} lastClickedCell={lastClickedCell} />;
+        });
 };

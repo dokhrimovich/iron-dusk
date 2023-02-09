@@ -1,13 +1,20 @@
 import { useMemo } from 'react';
 import { useResourcesContext } from 'Context/ResourcesContext';
+import { useGameStateContext } from 'Context/GameStateContext';
 import { useGameCanvasContext } from 'Context/GameCanvasContext';
 import { getHexVerticesOffset } from 'utils/common';
 
 export const useSkeleton = () => {
-    const { maps: { arena01: arena } } = useResourcesContext();
+    const { maps } = useResourcesContext();
+    const { arena: arenaName, mainState } = useGameStateContext();
     const { offset: [ displayOffsetX, displayOffsetY ], scale } = useGameCanvasContext();
+    const arena = mainState === 'BATTLE' ? maps[arenaName] : null;
 
     return useMemo(() => {
+        if (!arena) {
+            return null;
+        }
+
         return arena.groundLayer.map((row, ri) => row.map((col, ci) => {
             const {
                 center: [x, y],

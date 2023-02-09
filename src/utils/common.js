@@ -87,3 +87,5 @@ export const safeDrawImage = (ctx, img, ...params) => {
 
     ctx.drawImage(img, ...params);
 };
+
+export const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
