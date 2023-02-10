@@ -15,7 +15,7 @@ export const useSkeleton = () => {
             return null;
         }
 
-        return arena.groundLayer.map((row, ri) => row.map((col, ci) => {
+        return arena.groundLayer.map((row, ri) => row.map((_, ci) => {
             const {
                 center: [x, y],
                 top: [topX, topY],

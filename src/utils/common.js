@@ -89,3 +89,7 @@ export const safeDrawImage = (ctx, img, ...params) => {
 };
 
 export const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
+
+export const random = (N) => {
+    return Math.floor(Math.random() * N) + 1;
+};

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useGameCanvasContext } from 'Context/GameCanvasContext';
 import { useGameStateContext, SWITCH_TO_BATTLE, SET_WHOSE_TURN } from 'Context/GameStateContext';
 
-import { createCharacter } from 'BattleCharacters/Warrior';
+import { warrior } from 'GameElements/BattleCharacters/warrior';
 
 import { useCellStates } from './useCellStates';
 import { useGridLayer } from './Layers/useGridLayer';
@@ -32,8 +32,8 @@ export const Engine = () => {
             type: SWITCH_TO_BATTLE,
             arena: 'arena01',
             teamAllys: [
-                createCharacter([2, 1]),
-                createCharacter([2, 2])
+                warrior([2, 1]),
+                warrior([2, 2])
             ],
             teamEnemies: []
         });

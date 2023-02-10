@@ -4,7 +4,8 @@ import { deepClone } from 'utils/common';
 import { useGameStateContext } from 'Context/GameStateContext';
 import { useGetShortestPath } from 'Engine/useGetShortestPath';
 
-import { move, swordSwing } from '../commonActions';
+import { getImageOffsets, createDrawWithContext } from '../helpers';
+import { move, swordSwing } from './commonActions';
 
 const initialStats = Object.freeze({
     hp: 300,
@@ -42,7 +43,7 @@ const useSelf = (id) => {
     }, [id, teamAllys, teamEnemies]);
 };
 
-const Warrior = ({ id, setPath, lastClickedCell }) => {
+const WarriorComponent = ({ id, setPath, lastClickedCell }) => {
     const awaitUserAction = useRef(0);
     const [toCell, setToCell] = useState(null);
     const { whoseTurn } = useGameStateContext();
@@ -98,16 +99,23 @@ const Warrior = ({ id, setPath, lastClickedCell }) => {
     return null;
 };
 
-export const createCharacter = (cell) => {
+const width = 180;
+const height = 136;
+const spriteName = 'warrior';
+
+export const warrior = (cell) => {
     const id = Symbol('warrior');
+    const sprite = spriteName + '01';
     const stats = JSON.parse(JSON.stringify(initialStats));
+    const { dx, cw, dy, ch } = getImageOffsets(width, height);
 
     return {
         id,
+        name: spriteName,
         key: `${cell[0]-cell[1]}`,
-        sprite: 'warrior01',
+        with: createDrawWithContext(sprite, { dx, cw, dy, ch }),
         cell,
         ...deepClone(stats),
-        Component: (props) => <Warrior id={id} {...props} />
+        Component: (props) => <WarriorComponent id={id} {...props} />
     };
 };

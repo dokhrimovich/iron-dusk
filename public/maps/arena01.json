@@ -1,9 +1,9 @@
 {
     "location": "woods",
     "mapCodes": {
-        "1": "mud01",
-        "2": ["grass_back01", "grass_front01"],
-        "3": "boulder01"
+        "1": "mud",
+        "2": "tallGrass",
+        "3": "boulder"
     },
     "noGoCodes": [3],
     "noFlyCodes":  [],

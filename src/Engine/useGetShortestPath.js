@@ -23,7 +23,7 @@ export const useGraph = () => {
         };
 
         return Object.fromEntries(
-            arena.groundLayer.map((row, ri) => row.map((groundCode, ci) => {
+            arena.groundLayer.map((row, ri) => row.map((_, ci) => {
                 if (arena.isNoGoCell([ri, ci]) || isThereAnybodyOutThere([ri, ci])) {
                     return null;
                 }
