@@ -51,17 +51,17 @@ export const Engine = () => {
     }, [teamAllys, dispatch]);
 
     useEffect(() => {
-        let id = window.requestAnimationFrame(function draw() {
+        let id = window.requestAnimationFrame(function draw(timestamp) {
             if (!ctx) {
                 return;
             }
 
             clearCanvas();
 
-            terrainLayer.drawGround();
-            gridLayer.drawGrid();
-            terrainLayer.drawGroundTop();
-            gridLayer.drawPath();
+            terrainLayer.drawGround(timestamp);
+            gridLayer.drawGrid(timestamp);
+            terrainLayer.drawGroundTop(timestamp);
+            gridLayer.drawPath(timestamp);
 
             id = window.requestAnimationFrame(draw);
         });

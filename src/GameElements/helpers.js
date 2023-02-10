@@ -66,7 +66,7 @@ export const createDrawWithContext = (sprite, offsets) => {
 
 export const createDrawWrapperWithContext = (sprites, offsets) => {
     return ({ ctx, images, scale }) => {
-        function drawSpriteFn([x, y], drawInTheMiddle) {
+        function drawSpriteFn([x, y], timestamp, drawInTheMiddle) {
             const imageBack = images[sprites[0]];
             const imageFront = images[sprites[1]];
             const { dx, cw, dy, ch } = offsets;
@@ -74,8 +74,64 @@ export const createDrawWrapperWithContext = (sprites, offsets) => {
             const [cX, cY] = [(x - dX) , (y - dY)];
 
             safeDrawImage(ctx, imageBack, 0, 0, imageBack.width, imageBack.height, cX, cY, cW, cH);
-            drawInTheMiddle?.([x, y]);
+            drawInTheMiddle?.([x, y], timestamp);
             safeDrawImage(ctx, imageFront, 0, 0, imageFront.width, imageFront.height, cX, cY, cW, cH);
+        }
+
+        drawSpriteFn.drawSprite = drawSpriteFn;
+
+        return drawSpriteFn;
+    };
+};
+
+export const noAnimation = () => [0, 0];
+
+export const createGetFrame = (ttlFrames, duration = 1000, animationOffset = 0) => {
+    const start = animationOffset;
+    const frameDuration = duration / ttlFrames;
+
+    return (timestamp) => {
+        const cycle = (timestamp - start) % duration;
+
+        return [Math.floor(cycle / frameDuration), 0];
+    };
+};
+
+export const createAnimatedDrawWithContext = (sprite, { width, height }, getFrame = noAnimation) => {
+    const { dx, cw, dy, ch } = getImageOffsets(width, height);
+
+    return ({ ctx, images, scale }) => {
+        function drawSpriteFn([x, y], timestamp) {
+            const image = images[sprite];
+            const [dX, dY, cW, cH] = [dx * scale, dy * scale, cw * scale, ch * scale];
+            const [cX, cY] = [(x - dX) , (y - dY)];
+            const [fx, fy] = getFrame(timestamp);
+            const [ix, iy] = [fx * width, fy * height];
+
+            safeDrawImage(ctx, image, ix, iy, width, height, cX, cY, cW, cH);
+        }
+
+        drawSpriteFn.drawSprite = drawSpriteFn;
+
+        return drawSpriteFn;
+    };
+};
+
+export const createAnimatedDrawWrapperWithContext = (sprites, { width, height }, getFrame = noAnimation) => {
+    const { dx, cw, dy, ch } = getImageOffsets(width, height);
+
+    return ({ ctx, images, scale }) => {
+        function drawSpriteFn([x, y], timestamp, drawInTheMiddle) {
+            const imageBack = images[sprites[0]];
+            const imageFront = images[sprites[1]];
+            const [dX, dY, cW, cH] = [dx * scale, dy * scale, cw * scale, ch * scale];
+            const [cX, cY] = [(x - dX) , (y - dY)];
+            const [fx, fy] = getFrame(timestamp);
+            const [ix, iy] = [fx * width, fy * height];
+
+            safeDrawImage(ctx, imageBack, ix, iy, width, height, cX, cY, cW, cH);
+            drawInTheMiddle?.([x, y], timestamp);
+            safeDrawImage(ctx, imageFront, ix, iy, width, height, cX, cY, cW, cH);
         }
 
         drawSpriteFn.drawSprite = drawSpriteFn;

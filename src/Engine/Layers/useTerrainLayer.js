@@ -14,7 +14,7 @@ export const useTerrainLayer = ({ skeleton }) => {
     const arena = mainState === 'BATTLE' ? maps[arenaName] : null;
     const acm = useMemo(() => activeCharacterMarker(), []);
 
-    const drawGround = useCallback(() => {
+    const drawGround = useCallback((timestamp) => {
         if (!ctx || !arena) {
             return;
         }
@@ -25,13 +25,13 @@ export const useTerrainLayer = ({ skeleton }) => {
                 const element = arena.groundLayer[ri][ci];
 
                 if (element) {
-                    element.with({ ctx, images, scale }).drawSprite(center);
+                    element.with({ ctx, images, scale }).drawSprite(center, timestamp);
                 }
             });
         });
     }, [ctx, scale, arena, skeleton, images]);
 
-    const drawGroundTop = useCallback(() => {
+    const drawGroundTop = useCallback((timestamp) => {
         if (!ctx || !arena) {
             return;
         }
@@ -46,14 +46,14 @@ export const useTerrainLayer = ({ skeleton }) => {
                 const element = arena.terrainLayer[ri][ci];
                 const elementDrawSprite = element?.with({ ctx, images, scale });
                 const allyDrawSprite = isActiveAlly
-                    ? (c) => acm.with({ ctx, images, scale }).drawSprite(c, ally.with({ ctx, images, scale }))
+                    ? (c, t) => acm.with({ ctx, images, scale }).drawSprite(c, t, ally.with({ ctx, images, scale }))
                     : ally?.with({ ctx, images, scale });
 
                 if (element?.isWrapper && ally) {
-                    elementDrawSprite(center, allyDrawSprite);
+                    elementDrawSprite(center, timestamp, allyDrawSprite);
                 } else {
-                    element && elementDrawSprite(center);
-                    ally && allyDrawSprite(center);
+                    element && elementDrawSprite(center, timestamp);
+                    ally && allyDrawSprite(center, timestamp);
                 }
             });
         });
