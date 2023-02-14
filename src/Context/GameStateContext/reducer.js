@@ -12,18 +12,25 @@ export const SET_TURN_QUEUE = 'SET_TURN_QUEUE';
 export const SET_AWAIT_USER_INPUT = 'SET_AWAIT_USER_INPUT';
 export const SET_AWAIT_AI_INPUT = 'SET_AWAIT_AI_INPUT';
 
+export const ADD_ACTION = 'ADD_ACTION';
+export const CLEAR_ACTIONS = 'CLEAR_ACTIONS';
+export const START_ACTION_EXECUTION = 'START_ACTION_EXECUTION';
+export const FINISH_ACTION_EXECUTION = 'FINISH_ACTION_EXECUTION';
+
+export const MOVE_CHARACTER_TO = 'MOVE_CHARACTER_TO';
+
 const initialState = {
     mainState: 'BATTLE',// map castle loading
     arena: null,
     entities: [],
     teamAllys: [],
     teamEnemies: [],
-    whoseTurn: 0,
+    whoseTurn: null,
     turnQueue: [],
     awaitUserInput: false,
     awaitAiInput: false,
-    awaitActionsToComplete: false,
-    actionsList: []
+    todoActionsList: [],
+    executeActionsList: []
 };
 
 const reducer = (state, action) => {
@@ -59,7 +66,8 @@ const reducer = (state, action) => {
         case SET_WHOSE_TURN:
             return {
                 ...state,
-                whoseTurn: action.whoseTurn
+                whoseTurn: action.whoseTurn,
+                awaitUserInput: state.teamAllys.some(a => a.id === action.whoseTurn)
             };
         case SET_TURN_QUEUE:
             return {
@@ -75,6 +83,42 @@ const reducer = (state, action) => {
             return {
                 ...state,
                 awaitUserInput: action.awaitUserInput
+            };
+        case ADD_ACTION:
+            return {
+                ...state,
+                todoActionsList: [...state.todoActionsList, action.action]
+            };
+        case CLEAR_ACTIONS:
+            return {
+                ...state,
+                todoActionsList: []
+            };
+        case START_ACTION_EXECUTION:
+            return {
+                ...state,
+                awaitUserInput: false,
+                executeActionsList: state.todoActionsList,
+                todoActionsList: []
+            };
+        case FINISH_ACTION_EXECUTION:
+            return {
+                ...state,
+                awaitUserInput: true,
+                executeActionsList: [],
+                todoActionsList: []
+            };
+        case MOVE_CHARACTER_TO:
+            const character = state.teamAllys.find(a => a.id === action.id)
+                || state.teamEnemies.find(a => a.id === action.id);
+
+            character.cell = [...action.cell];
+            character.stats.stepsLeft = character.stats.stepsLeft - action.steps;
+
+            return {
+                ...state,
+                teamAllys: [...state.teamAllys],
+                teamEnemies: [...state.teamEnemies]
             };
 
         default:

@@ -4,11 +4,12 @@ import { useGameStateContext } from 'Context/GameStateContext';
 import { useGameCanvasContext } from 'Context/GameCanvasContext';
 import { COLOR } from '../constants';
 
-export const useGridLayer = ({ skeleton, hoveredCell, path }) => {
-    const { arena: arenaName, mainState } = useGameStateContext();
+export const useGridLayer = ({ skeleton, hoveredCell }) => {
+    const { arena: arenaName, mainState, todoActionsList } = useGameStateContext();
     const { canvas: { ctx } } = useGameCanvasContext();
     const { maps } = useResourcesContext();
     const arena = mainState === 'BATTLE' ? maps[arenaName] : null;
+    const moveAction = todoActionsList.find(a => a.type === 'MOVE');
 
     // const drawCircle = useCallback((x, y) => {
     //     ctx.strokeStyle = 'white';
@@ -46,19 +47,42 @@ export const useGridLayer = ({ skeleton, hoveredCell, path }) => {
         ctx.lineWidth = highlight ? 2 : 1;
         ctx.stroke();
     }, [ctx]);
-    const drawDottedPath = useCallback((cells) => {
+    /**
+     * @param cell contain array from starting cell to finish
+     * Like 0(start) -> 1 -> 2 -> 3 -> 4(finish)
+     * @param max - how many steps will be rendered as available
+     * if max = 2, the available path will be from Like 0(start) -> 1 -> 2
+     * and not available fom 2 -> 3 -> 4(finish)
+     */
+    const drawDottedPath = useCallback((cells, max) => {
         if (cells.length < 2) {
             return;
         }
 
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([3, 3]);
-        ctx.beginPath();
-        ctx.moveTo(...cells[0]);
-        cells.forEach(cell => ctx.lineTo(...cell));
+        const availableSteps = cells.slice(0, max + 1);
+        const nonAvailableSteps = [availableSteps.at(-1), ...cells.slice(max)];
 
-        ctx.stroke();
+        if (availableSteps.length > 1) {
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(...availableSteps[0]);
+            availableSteps.forEach(cell => ctx.lineTo(...cell));
+
+            ctx.stroke();
+        }
+
+        if (nonAvailableSteps.length > 1) {
+            ctx.strokeStyle = '#BA2828';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(...nonAvailableSteps[0]);
+            nonAvailableSteps.forEach(cell => ctx.lineTo(...cell));
+
+            ctx.stroke();
+        }
 
         ctx.setLineDash([]);
         ctx.lineWidth = 1;
@@ -83,14 +107,14 @@ export const useGridLayer = ({ skeleton, hoveredCell, path }) => {
     }, [ctx, arena, skeleton, hoveredCell, drawCell]);
 
     const drawPath = useCallback(() => {
-        if (!ctx || !skeleton || !path || !path.length) {
+        if (!ctx || !skeleton || !moveAction) {
             return;
         }
 
-        const pathCells = path.map(([ri, ci]) => skeleton[ri][ci].center);
+        const pathCells = moveAction.cells.map(([ri, ci]) => skeleton[ri][ci].center);
 
-        drawDottedPath(pathCells);
-    }, [ctx, skeleton, path, drawDottedPath]);
+        drawDottedPath(pathCells, moveAction.stepsLeft);
+    }, [ctx, skeleton, moveAction, drawDottedPath]);
 
     return useMemo(() => ({
         drawGrid,

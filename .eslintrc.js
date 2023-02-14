@@ -78,7 +78,7 @@ module.exports = {
         'guard-for-in': 'off', // WIP
         'no-alert': 'error',
         'no-caller': 'error',
-        'no-case-declarations': 'error',
+        'no-case-declarations': 'off',
         'no-div-regex': 'off',
         'no-else-return': 'warn',
         'no-empty-function': ['off'], // WIP: maybe use predefined emptyFn or _.noop?

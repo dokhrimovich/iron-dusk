@@ -1,7 +1,6 @@
-export const move = (distance) => {
+export const move = () => {
     return {
-        type: 'MOVE',
-        distance
+        type: 'MOVE'
     };
 };
 
