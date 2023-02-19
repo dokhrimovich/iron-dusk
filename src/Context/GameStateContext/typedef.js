@@ -47,7 +47,14 @@
  * @property {boolean} awaitAiInput
  * @property {Action[]} todoActionsList
  * @property {Action[]} executeActionsList
- * @property {function} dispatch
+ * @property {({ arena: string, teamAllys: BattleCharacter[], teamEnemies: BattleCharacter[] }) => {}} switchToBattle
+ * @property {({ id: symbol, cell: Cell }) => {}} moveCharacterTo
+ * @property {({ id: symbol, [steps]: number }) => {}} reduceStepsLeft
+ * @property {() => {}} setNextTurn
+ * @property {() => {}} startActionExecution
+ * @property {() => {}} finishActionExecution
+ * @property {() => {}} clearActions
+ * @property {(actions: Action[]) => {}} addActions
  */
 
 export default {};

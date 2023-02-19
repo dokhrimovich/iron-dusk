@@ -93,3 +93,18 @@ export const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 export const random = (N) => {
     return Math.floor(Math.random() * N) + 1;
 };
+
+export const randomizeArray = (arr) => {
+    let arrLeft = arr;
+    const result = [];
+
+    while (arrLeft.length > 0) {
+        const rIndex = random(arrLeft.length) - 1;
+        const rValue = arrLeft[rIndex];
+        arrLeft = arrLeft.filter((_, i) => i !== rIndex);
+
+        result.push(rValue);
+    }
+
+    return result;
+};

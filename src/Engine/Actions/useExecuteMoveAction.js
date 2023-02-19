@@ -1,22 +1,17 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { cellEq } from 'utils/map';
 
-import { useGameStateContext, MOVE_CHARACTER_TO } from 'Context/GameStateContext';
+import { useGameStateContext } from 'Context/GameStateContext';
 
 export const useExecuteMoveAction = ({ currentAction, done }) => {
-    const { teamAllys, teamEnemies, dispatch } = useGameStateContext();
+    const { teamAllys, teamEnemies, moveCharacterTo, reduceStepsLeft } = useGameStateContext();
     const [availablePath, setAvailablePath] = useState(null);
-
-    const moveOneStep = useCallback((id, cell) => {
-        window.setTimeout(() => {
-            dispatch({
-                type: MOVE_CHARACTER_TO,
-                id,
-                cell,
-                steps: 1
-            });
-        }, 150);
-    }, [dispatch]);
+    const [expectCharacterCell, setExpectCharacterCell] = useState(null);
+    const finishAction = useCallback(() => {
+        done();
+        setAvailablePath(null);
+        setExpectCharacterCell(null);
+    }, [done, setAvailablePath, setExpectCharacterCell]);
 
     useEffect(() => {
         if (!currentAction || currentAction.type !== 'MOVE') {
@@ -35,8 +30,7 @@ export const useExecuteMoveAction = ({ currentAction, done }) => {
         }
 
         if (cellEq(availablePath.at(-1), character.cell)) {
-            done();
-            setAvailablePath(null);
+            finishAction();
 
             return;
         }
@@ -45,12 +39,44 @@ export const useExecuteMoveAction = ({ currentAction, done }) => {
         const nextCellIndex = currentCellIndex + 1;
 
         if (currentCellIndex === -1 || nextCellIndex >= availablePath.length) {
-            done();
-            setAvailablePath(null);
+            finishAction();
 
             return;
         }
 
-        moveOneStep(character.id, availablePath[nextCellIndex]);
-    }, [currentAction, setAvailablePath, availablePath, teamAllys, teamEnemies, moveOneStep, done]);
+        setExpectCharacterCell(availablePath[nextCellIndex]);
+
+        if (!expectCharacterCell) { // first step
+            moveCharacterTo({
+                id: character.id,
+                cell: availablePath[nextCellIndex],
+                steps: 1
+            });
+            reduceStepsLeft({
+                id: character.id,
+                steps: 1
+            });
+
+            return;
+        }
+
+        if (!cellEq(character.cell, expectCharacterCell)) {
+            window.setTimeout(() => {
+                moveCharacterTo({
+                    id: character.id,
+                    cell: expectCharacterCell,
+                    steps: 1
+                });
+                reduceStepsLeft({
+                    id: character.id,
+                    steps: 1
+                });
+            }, 150);
+        }
+    }, [
+        currentAction, finishAction,
+        availablePath, setAvailablePath,
+        expectCharacterCell, setExpectCharacterCell,
+        teamAllys, teamEnemies, moveCharacterTo, reduceStepsLeft
+    ]);
 };

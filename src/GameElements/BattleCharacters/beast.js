@@ -11,8 +11,8 @@ const initialStats = Object.freeze({
     hp: 300,
     sp: 300,
     fp: 300,
-    stepsLeft: 5,
-    maxSteps: 5,
+    stepsLeft: 6,
+    maxSteps: 6,
     initiative: 3,
     availableActions: [
         move(),
@@ -46,10 +46,10 @@ const useSelf = (id) => {
     }, [id, teamAllys, teamEnemies]);
 };
 
-const WarriorComponent = ({ id, executeActions, lastClickedCell }) => {
+const BeastComponent = ({ id, executeActions, lastClickedCell }) => {
     const lastClickTime = useRef(0);
     const [toCell, setToCell] = useState(null);
-    const { teamEnemies, whoseTurn, awaitUserInput, clearActions, addActions } = useGameStateContext();
+    const { whoseTurn, awaitUserInput, clearActions, addActions } = useGameStateContext();
     const getShortestPath = useGetShortestPath();
     const [self, isAlly] = useSelf(id);
 
@@ -87,39 +87,19 @@ const WarriorComponent = ({ id, executeActions, lastClickedCell }) => {
         }
 
         (async () => {
-            const destinationEnemy = teamEnemies.find(ch => cellEq(ch.cell, toCell));
-            let { path: shortestPath } = await getShortestPath(currentCell, toCell);
+            const { path: shortestPath } = await getShortestPath(currentCell, toCell);
             const moveAction = self.stats.availableActions.find(a => a.type === 'MOVE');
-            const attackAction = self.stats.availableActions.find(a => a.type === 'ATTACK');
 
-            if (shortestPath?.length < 2) {
+            if (!moveAction) {
                 return;
             }
 
-            if (destinationEnemy) {
-                const secondToLastCellInPath = shortestPath.at(-2);
-                const { path: shortestPath2 } = await getShortestPath(currentCell, secondToLastCellInPath);
-
-                shortestPath = shortestPath2;
-            }
-
-            addActions([
-                ...moveAction && shortestPath?.length >= 2
-                ? [{
-                    ...moveAction,
-                    id,
-                    stepsLeft: self.stats.stepsLeft,
-                    cells: shortestPath
-                }]
-                : [],
-                ...attackAction && destinationEnemy
-                ? [{
-                    ...attackAction,
-                    from: self.id,
-                    to: destinationEnemy.id
-                }]
-                : []
-            ]);
+            addActions({
+                ...moveAction,
+                id,
+                stepsLeft: self.stats.stepsLeft,
+                cells: shortestPath
+            });
         })();
     }, [id, currentCell, toCell, getShortestPath, awaitUserInput, self, clearActions, addActions]);
 
@@ -128,10 +108,10 @@ const WarriorComponent = ({ id, executeActions, lastClickedCell }) => {
 
 const width = 180;
 const height = 136;
-const spriteName = 'warrior';
+const spriteName = 'beast';
 
-export const warrior = (cell) => {
-    const id = Symbol('warrior');
+export const beast = (cell) => {
+    const id = Symbol('beast');
     const sprite = spriteName + '01';
     const stats = JSON.parse(JSON.stringify(initialStats));
     const { dx, cw, dy, ch } = getImageOffsets(width, height);
@@ -143,6 +123,6 @@ export const warrior = (cell) => {
         with: createDrawWithContext(sprite, { dx, cw, dy, ch }),
         cell,
         stats: deepClone(stats),
-        Component: (props) => <WarriorComponent id={id} {...props} />
+        Component: (props) => <BeastComponent id={id} {...props} />
     };
 };

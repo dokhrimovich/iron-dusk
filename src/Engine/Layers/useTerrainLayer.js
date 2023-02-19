@@ -9,7 +9,7 @@ import { activeCharacterMarker } from 'GameElements/Markers';
 
 export const useTerrainLayer = ({ skeleton }) => {
     const { canvas: { ctx }, scale } = useGameCanvasContext();
-    const { arena: arenaName, mainState, teamAllys, whoseTurn } = useGameStateContext();
+    const { arena: arenaName, mainState, teamAllys, teamEnemies, whoseTurn } = useGameStateContext();
     const { images, maps } = useResourcesContext();
     const arena = mainState === 'BATTLE' ? maps[arenaName] : null;
     const acm = useMemo(() => activeCharacterMarker(), []);
@@ -41,19 +41,21 @@ export const useTerrainLayer = ({ skeleton }) => {
                 const { center } = col;
                 const ci = row.length - 1 - cri;
                 const ally = teamAllys.find(character => cellEq(character.cell, [ri, ci]));
+                const enemy = teamEnemies.find(character => cellEq(character.cell, [ri, ci]));
                 const isActiveAlly = ally && ally.id === whoseTurn;
+                const character = ally || enemy;
 
                 const element = arena.terrainLayer[ri][ci];
                 const elementDrawSprite = element?.with({ ctx, images, scale });
-                const allyDrawSprite = isActiveAlly
-                    ? (c, t) => acm.with({ ctx, images, scale }).drawSprite(c, t, ally.with({ ctx, images, scale }))
-                    : ally?.with({ ctx, images, scale });
+                const characterDrawSprite = isActiveAlly
+                    ? (c, t) => acm.with({ ctx, images, scale }).drawSprite(c, t, character.with({ ctx, images, scale }))
+                    : character?.with({ ctx, images, scale });
 
-                if (element?.isWrapper && ally) {
-                    elementDrawSprite(center, timestamp, allyDrawSprite);
+                if (element?.isWrapper && character) {
+                    elementDrawSprite(center, timestamp, characterDrawSprite);
                 } else {
                     element && elementDrawSprite(center, timestamp);
-                    ally && allyDrawSprite(center, timestamp);
+                    character && characterDrawSprite(center, timestamp);
                 }
             });
         });

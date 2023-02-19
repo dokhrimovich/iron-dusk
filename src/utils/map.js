@@ -19,6 +19,9 @@
  * 17                  prev[v] ← u
  * 18
  * 19      return dist[], prev[]
+ * @param {{string: [string, number]}} graph
+ * @param {[number, number]} fromCell
+ * @param {[number, number]} toCell
  */
 export const findShortestPath = ({ graph, fromCell, toCell }) => {
     const from = `${fromCell[0]}:${fromCell[1]}`;
@@ -44,20 +47,20 @@ export const findShortestPath = ({ graph, fromCell, toCell }) => {
                 Object.entries(dist)
                     .filter(([v]) => !visitedNodes.includes(v)));
         const minDist = Math.min.apply(Math, Object.values(distancesOfNotVisitedNodes));
-        const [closetNode] = Object.entries(distancesOfNotVisitedNodes).find(([, d]) => d === minDist);
+        const [closestNode] = Object.entries(distancesOfNotVisitedNodes).find(([, d]) => d === minDist);
 
-        visitedNodes.push(closetNode);
+        visitedNodes.push(closestNode);
 
-        const neighbours = graph[closetNode];
+        const neighbours = graph[closestNode];
 
         neighbours
-            .filter(v => !visitedNodes.includes(v))
-            .forEach(v => {
-                const newDist = dist[closetNode] + 1; // todo if more than 1?
+            .filter(([n]) => !visitedNodes.includes(n))
+            .forEach(([n, v]) => {
+                const newDist = dist[closestNode] + v;
 
-                if (newDist < dist[v]) {
-                    dist[v] = newDist;
-                    prev[v] = closetNode;
+                if (newDist < dist[n]) {
+                    dist[n] = newDist;
+                    prev[n] = closestNode;
                 }
             });
     }
@@ -78,3 +81,17 @@ export const findShortestPath = ({ graph, fromCell, toCell }) => {
 };
 
 export const cellEq = (c1, c2) => c1 === c2 || c1 && c2 && c1[0] === c2[0] && c1[1] === c2[1];
+
+export const getNeighbourCells = ([ri, ci]) => {
+    return ri % 2
+        ? [
+            [ri - 1, ci], [ri - 1, ci + 1],
+            [ri, ci - 1], [ri, ci + 1],
+            [ri + 1, ci], [ri + 1, ci + 1]
+        ]
+        : [
+            [ri - 1, ci - 1], [ri - 1, ci],
+            [ri, ci - 1], [ri, ci + 1],
+            [ri + 1, ci - 1], [ri + 1, ci]
+        ];
+};

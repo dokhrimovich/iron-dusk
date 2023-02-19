@@ -1,7 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import { useResourcesContext } from 'Context/ResourcesContext';
 import { useGameStateContext } from 'Context/GameStateContext';
-import { findShortestPath, cellEq } from 'utils/map';
+import { findShortestPath, cellEq, getNeighbourCells } from 'utils/map';
 import ShortestPathWebWorker from './shortestPath.worker';
 
 const shortestPathWebWorker = new ShortestPathWebWorker();
@@ -16,34 +16,28 @@ export const useGraph = () => {
             return {};
         }
 
-        const isThereAnybodyOutThere = ([ri, ci]) => {
-            return teamAllys.some(ch => ch.id !== whoseTurn && cellEq(ch.cell, [ri, ci]))
-                || teamEnemies.some(ch => cellEq(ch.cell, [ri, ci]))
-                || entities.some(ch => cellEq(ch.cell, [ri, ci]));
-        };
+        const isAllyThere = ([ri, ci]) => teamAllys.some(ch => ch.id !== whoseTurn && cellEq(ch.cell, [ri, ci]));
+        const isEnemyThere = ([ri, ci]) => teamEnemies.some(ch => cellEq(ch.cell, [ri, ci]));
+        const isSomethingThere = ([ri, ci]) => entities.some(ch => cellEq(ch.cell, [ri, ci]));
 
         return Object.fromEntries(
             arena.groundLayer.map((row, ri) => row.map((_, ci) => {
-                if (arena.isNoGoCell([ri, ci]) || isThereAnybodyOutThere([ri, ci])) {
+                if (arena.isNoGoCell([ri, ci])
+                    || isAllyThere([ri, ci])
+                    || isSomethingThere([ri, ci])) {
                     return null;
                 }
 
-                const allNeighbourCells = ri % 2
-                    ? [
-                        [ri - 1, ci], [ri - 1, ci + 1],
-                        [ri, ci - 1], [ri, ci + 1],
-                        [ri + 1, ci], [ri + 1, ci + 1]
-                    ]
-                    : [
-                        [ri - 1, ci - 1], [ri - 1, ci],
-                        [ri, ci - 1], [ri, ci + 1],
-                        [ri + 1, ci - 1], [ri + 1, ci]
-                    ];
-                const validNeighbourCells = allNeighbourCells
+                const validNeighbourCells = getNeighbourCells([ri, ci])
                     .filter(([nri, nci]) => {
-                        return !arena.isNoGoCell([nri, nci]) && !isThereAnybodyOutThere([nri, nci]);
+                        return !arena.isNoGoCell([nri, nci])
+                            && !isAllyThere([nri, nci])
+                            && !isSomethingThere([nri, nci]);
                     })
-                    .map(([nri, nci]) => `${nri}:${nci}`);
+                    .map(([nri, nci]) => [
+                        `${nri}:${nci}`,
+                        isEnemyThere([nri, nci]) ? 999 : 1
+                    ]);
 
                 return [`${ri}:${ci}`, validNeighbourCells];
             })).flat().filter(Boolean)

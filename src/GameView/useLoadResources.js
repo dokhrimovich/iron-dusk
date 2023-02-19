@@ -12,7 +12,8 @@ const imageURLs = {
     tallGrassBack01: 'img/tallGrassBack01.png',
     tallGrassFront01: 'img/tallGrassFront01.png',
     boulder01: 'img/boulder01.png',
-    warrior01: 'img/warrior01.png'
+    warrior01: 'img/warrior01.png',
+    beast01: 'img/beast01.png'
 };
 
 const mapsURLs = {

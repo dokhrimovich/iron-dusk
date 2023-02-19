@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useGameStateContext, START_ACTION_EXECUTION, FINISH_ACTION_EXECUTION } from 'Context/GameStateContext';
+import { useGameStateContext } from 'Context/GameStateContext';
 
 import { useExecuteMoveAction } from './useExecuteMoveAction';
 
 export const useExecuteActions = () => {
-    const { todoActionsList, executeActionsList, dispatch } = useGameStateContext();
+    const { todoActionsList, executeActionsList, startActionExecution, finishActionExecution } = useGameStateContext();
     const [currentActionIndex, setCurrentActionIndex] = useState(-1);
     const currentAction = currentActionIndex > -1
         ? executeActionsList[currentActionIndex] : null;
@@ -22,19 +22,15 @@ export const useExecuteActions = () => {
         if (currentActionIndex >= executeActionsList.length) {
             setCurrentActionIndex(-1);
 
-            dispatch({
-                type: FINISH_ACTION_EXECUTION
-            });
+            finishActionExecution();
         }
-    }, [currentActionIndex, executeActionsList, dispatch]);
+    }, [currentActionIndex, executeActionsList, finishActionExecution]);
 
     return useCallback(() => {
         if (!todoActionsList.length) {
             return;
         }
 
-        dispatch({
-            type: START_ACTION_EXECUTION
-        });
-    }, [todoActionsList, dispatch]);
+        startActionExecution();
+    }, [todoActionsList, startActionExecution]);
 };

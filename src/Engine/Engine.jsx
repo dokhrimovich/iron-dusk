@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect } from 'react';
 import { useGameCanvasContext } from 'Context/GameCanvasContext';
-import { useGameStateContext, SWITCH_TO_BATTLE, SET_WHOSE_TURN } from 'Context/GameStateContext';
+import { useGameStateContext } from 'Context/GameStateContext';
 
-import { warrior } from 'GameElements/BattleCharacters/warrior';
+import { warrior, beast } from 'GameElements/BattleCharacters';
 
 import { useCellStates } from './useCellStates';
 import { useGridLayer } from './Layers/useGridLayer';
@@ -11,7 +11,7 @@ import { useSkeleton } from './useSkeleton';
 import { useExecuteActions } from './Actions';
 
 export const Engine = () => {
-    const { teamAllys, dispatch } = useGameStateContext();
+    const { teamAllys, switchToBattle } = useGameStateContext();
     const { canvas: { ctx, el: canvasEl, width, height } } = useGameCanvasContext();
 
     const skeleton = useSkeleton();
@@ -27,27 +27,17 @@ export const Engine = () => {
     }, [ctx, width, height]);
 
     useEffect(() => {
-        dispatch({
-            type: SWITCH_TO_BATTLE,
+        switchToBattle({
             arena: 'arena01',
             teamAllys: [
                 warrior([2, 1]),
                 warrior([2, 2])
             ],
-            teamEnemies: []
+            teamEnemies: [
+                beast([7, 3])
+            ]
         });
-    }, [dispatch]);
-
-    useEffect(() => {
-        if (!teamAllys?.length) {
-            return;
-        }
-
-        dispatch({
-            type: SET_WHOSE_TURN,
-            whoseTurn: teamAllys[0].id
-        });
-    }, [teamAllys, dispatch]);
+    }, [switchToBattle]);
 
     useEffect(() => {
         let id = window.requestAnimationFrame(function draw(timestamp) {
